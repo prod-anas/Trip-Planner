@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="شهر العسل">
+<meta name="theme-color" content="#ffffff">
+<title>شهر العسل</title>
+<style>
+  :root {
+    --rose: #e11d48;
+    --ink: #1c1917;
+    --mute: #a8a29e;
+    --line: #e7e5e4;
+    --fill: #f5f5f4;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; background: #fff; color: var(--ink); }
+  body {
+    font-family: system-ui, -apple-system, "SF Arabic", "Segoe UI", Tahoma, sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+  }
+  .wrap { max-width: 480px; margin: 0 auto; padding: 40px 20px 64px; }
+  h1 { font-size: 34px; font-weight: 700; letter-spacing: -0.5px; margin: 0; }
+  h2 { font-size: 22px; font-weight: 600; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sub { color: var(--rose); margin: 8px 0 0; }
+  .muted { color: var(--mute); }
+  .status { font-size: 14px; color: var(--mute); margin: 12px 0 0; }
+  .status.bad { color: var(--rose); }
+  .top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+
+  button { font: inherit; cursor: pointer; border: 0; background: none; color: inherit; }
+  .btn {
+    height: 44px; width: 100%; border-radius: 12px;
+    background: var(--rose); color: #fff; font-weight: 500;
+  }
+  .btn:active { filter: brightness(0.92); }
+  .icon-btn {
+    height: 44px; width: 44px; flex: 0 0 44px; border-radius: 12px;
+    background: var(--rose); color: #fff; font-size: 22px; line-height: 1;
+  }
+  .ghost { color: var(--mute); font-size: 14px; padding: 4px 0; }
+  .ghost:active { color: var(--rose); }
+  .refresh { color: var(--mute); font-size: 20px; padding: 8px; }
+
+  input {
+    font: inherit; height: 44px; width: 100%; border: 0; border-radius: 12px;
+    background: var(--fill); padding: 0 12px; color: var(--ink); outline: none;
+  }
+  input::placeholder { color: var(--mute); }
+  .card input { background: var(--fill); }
+  .new input { background: #fff; }
+
+  .card { border: 1px solid var(--line); border-radius: 24px; padding: 20px; margin-bottom: 24px; }
+  .card .head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+  .date { color: var(--rose); font-size: 14px; flex: 0 0 auto; }
+
+  .item { display: flex; align-items: center; gap: 12px; padding: 4px 0; }
+  .item p { margin: 0; flex: 1; }
+  .item p.done { color: var(--mute); text-decoration: line-through; }
+  .tick {
+    height: 28px; width: 28px; flex: 0 0 28px; border-radius: 999px;
+    border: 1px solid var(--line); display: flex; align-items: center; justify-content: center;
+    font-size: 15px; color: transparent;
+  }
+  .tick.on { background: var(--rose); border-color: var(--rose); color: #fff; }
+  .del { color: #d6d3d1; font-size: 18px; padding: 4px; }
+  .del:active { color: var(--rose); }
+
+  .row { display: flex; gap: 8px; margin-top: 12px; }
+  .new { background: var(--fill); border-radius: 24px; padding: 20px; margin-top: 32px; }
+  .new p { margin: 0 0 12px; font-weight: 600; }
+  .new input { margin-bottom: 12px; }
+
+  .empty { text-align: center; color: var(--mute); padding: 56px 0; }
+  .center { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; gap: 20px; }
+  .code { font-size: 26px; font-weight: 700; letter-spacing: 3px; direction: ltr; text-align: center; }
+  .note { background: #fff1f2; color: #9f1239; border-radius: 12px; padding: 12px; font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+
+<script type="module">
+/* ─────────────────────────────────────────────────────────────
+   ١. ضعا إعدادات Firebase هنا  /  Paste your Firebase config here
+   Firebase console → Project settings → Your apps → Web app
+   Leave it empty and the app still works, but only on one phone.
+   ───────────────────────────────────────────────────────────── */
+const FIREBASE_CONFIG = {
+  // apiKey: "",
+  // authDomain: "",
+  // projectId: "",
+  // storageBucket: "",
+  // messagingSenderId: "",
+  // appId: ""
+};
+
+const ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+const newCode = () =>
+  Array.from({ length: 6 }, () => ALPHABET[Math.floor(Math.random() * ALPHABET.length)]).join("");
+const uid = () => Math.random().toString(36).slice(2, 10);
+const esc = (s) =>
+  String(s).replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])
+  );
+
+const app = document.getElementById("app");
+let room = localStorage.getItem("hm_room") || "";
+let trips = [];
+let drafts = {};
+let status = "";
+let bad = false;
+let saveTimer = null;
+let cloud = null; // { docRef, setDoc }
+
+/* ── dates ─────────────────────────────────────────────── */
+const fmtDate = (s) => {
+  if (!s) return "";
+  const [y, m, d] = s.split("-").map(Number);
+  if (!y || !m || !d) return "";
+  try {
+    return new Date(y, m - 1, d).toLocaleDateString("ar-u-nu-latn", { day: "numeric", month: "long" });
+  } catch (e) { return s; }
+};
+const daysLeft = (s) => {
+  if (!s) return null;
+  const [y, m, d] = s.split("-").map(Number);
+  if (!y || !m || !d) return null;
+  const now = new Date(); now.setHours(0, 0, 0, 0);
+  return Math.round((new Date(y, m - 1, d) - now) / 86400000);
+};
+
+/* ── storage ───────────────────────────────────────────── */
+const localKey = () => "hm_data_" + room;
+
+async function connect() {
+  if (!FIREBASE_CONFIG.apiKey) {
+    trips = JSON.parse(localStorage.getItem(localKey()) || "[]");
+    status = "هذا الجهاز فقط — لم تُضبط المزامنة";
+    render();
+    return;
+  }
+  try {
+    const [{ initializeApp }, fs] = await Promise.all([
+      import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"),
+      import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"),
+    ]);
+    const db = fs.getFirestore(initializeApp(FIREBASE_CONFIG));
+    const docRef = fs.doc(db, "honeymoon", room);
+    cloud = { docRef, setDoc: fs.setDoc };
+    fs.onSnapshot(
+      docRef,
+      (snap) => {
+        const data = snap.data();
+        trips = (data && data.trips) || [];
+        status = "محفوظ لكليكما";
+        bad = false;
+        render();
+      },
+      () => { status = "تعذّر الاتصال"; bad = true; render(); }
+    );
+  } catch (e) {
+    trips = JSON.parse(localStorage.getItem(localKey()) || "[]");
+    status = "تعذّر الاتصال — هذا الجهاز فقط";
+    bad = true;
+    render();
+  }
+}
+
+function save() {
+  status = "جارٍ الحفظ…"; bad = false; paintStatus();
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async () => {
+    try {
+      if (cloud) await cloud.setDoc(cloud.docRef, { trips });
+      else localStorage.setItem(localKey(), JSON.stringify(trips));
+      status = cloud ? "محفوظ لكليكما" : "محفوظ على هذا الجهاز";
+      bad = false;
+    } catch (e) {
+      status = "تعذّر الحفظ"; bad = true;
+    }
+    paintStatus();
+  }, 400);
+}
+
+function paintStatus() {
+  const el = document.getElementById("status");
+  if (el) { el.textContent = status; el.className = "status" + (bad ? " bad" : ""); }
+}
+
+/* ── screens ───────────────────────────────────────────── */
+function renderJoin() {
+  app.innerHTML = `
+    <div class="center">
+      <div>
+        <h1>شهر العسل</h1>
+        <p class="muted" style="margin-top:12px">
+          أنشئا رمزاً واحداً واستخدماه على الهاتفين، لتظهر التعديلات عند كليكما.
+        </p>
+      </div>
+      <button class="btn" data-act="make">إنشاء رمز جديد</button>
+      <div>
+        <p class="muted" style="margin:0 0 8px">أو أدخلا رمزاً موجوداً</p>
+        <div class="row" style="margin:0">
+          <input id="joincode" placeholder="مثال: K7QM2P" style="text-transform:uppercase">
+          <button class="icon-btn" data-act="join">←</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function render() {
+  if (!room) return renderJoin();
+
+  const dated = trips.filter((t) => t.date).sort((a, b) => a.date.localeCompare(b.date));
+  const left = dated.length ? daysLeft(dated[0].date) : null;
+
+  const cards = trips.map((t) => `
+    <div class="card" data-trip="${t.id}">
+      <div class="head">
+        <h2>${esc(t.place)}</h2>
+        ${t.date ? `<span class="date">${fmtDate(t.date)}</span>` : ""}
+      </div>
+      <div style="margin-top:16px">
+        ${(t.items || []).map((i) => `
+          <div class="item">
+            <button class="tick ${i.done ? "on" : ""}" data-act="tick" data-id="${i.id}">✓</button>
+            <p class="${i.done ? "done" : ""}">${esc(i.text)}</p>
+            <button class="del" data-act="delitem" data-id="${i.id}">✕</button>
+          </div>`).join("")}
+      </div>
+      <div class="row">
+        <input data-draft="${t.id}" placeholder="أضيفا نشاطاً" value="${esc(drafts[t.id] || "")}">
+        <button class="icon-btn" data-act="additem">+</button>
+      </div>
+      <button class="ghost" data-act="deltrip">حذف الوجهة</button>
+    </div>`).join("");
+
+  app.innerHTML = `
+    <div class="top">
+      <div>
+        <h1>شهر العسل</h1>
+        ${left !== null && left >= 0
+          ? `<p class="sub">${left === 0 ? "الرحلة اليوم" : "باقي " + left + " يوم على أول رحلة"}</p>`
+          : `<p class="sub muted">خطتنا معاً</p>`}
+      </div>
+      <button class="refresh" data-act="settings" aria-label="الرمز">⚙</button>
+    </div>
+    <p id="status" class="status${bad ? " bad" : ""}">${esc(status)}</p>
+
+    <div style="margin-top:24px">${cards}</div>
+    ${trips.length === 0 ? `<p class="empty">لا توجد وجهات بعد.<br>أضيفا أول مكان تحلمان به.</p>` : ""}
+
+    <div class="new">
+      <p>وجهة جديدة</p>
+      <input id="place" placeholder="إلى أين؟" value="${esc(drafts.__place || "")}">
+      <input id="date" type="date" value="${esc(drafts.__date || "")}">
+      <button class="btn" data-act="addtrip">إضافة</button>
+    </div>`;
+
+  restoreFocus();
+}
+
+let focusKey = null, focusPos = 0;
+function restoreFocus() {
+  if (!focusKey) return;
+  const el = app.querySelector(`[data-draft="${focusKey}"], #${CSS.escape(focusKey)}`);
+  if (el) { el.focus(); try { el.setSelectionRange(focusPos, focusPos); } catch (e) {} }
+}
+
+/* ── events ────────────────────────────────────────────── */
+app.addEventListener("input", (e) => {
+  const el = e.target;
+  if (el.dataset.draft) { drafts[el.dataset.draft] = el.value; focusKey = el.dataset.draft; }
+  else if (el.id === "place") { drafts.__place = el.value; focusKey = "place"; }
+  else if (el.id === "date") { drafts.__date = el.value; focusKey = "date"; }
+  focusPos = el.selectionStart || 0;
+});
+
+app.addEventListener("keydown", (e) => {
+  if (e.key !== "Enter") return;
+  if (e.target.dataset.draft) addItem(e.target.dataset.draft);
+  if (e.target.id === "place") addTrip();
+  if (e.target.id === "joincode") joinRoom();
+});
+
+app.addEventListener("click", (e) => {
+  const btn = e.target.closest("button");
+  if (!btn) return;
+  const act = btn.dataset.act;
+  const card = btn.closest("[data-trip]");
+  const tripId = card && card.dataset.trip;
+
+  if (act === "make") { room = newCode(); localStorage.setItem("hm_room", room); connect(); render(); }
+  if (act === "join") joinRoom();
+  if (act === "addtrip") addTrip();
+  if (act === "additem") addItem(tripId);
+  if (act === "deltrip") { trips = trips.filter((t) => t.id !== tripId); save(); render(); }
+  if (act === "tick") {
+    const t = trips.find((x) => x.id === tripId);
+    const i = t.items.find((x) => x.id === btn.dataset.id);
+    i.done = !i.done; save(); render();
+  }
+  if (act === "delitem") {
+    const t = trips.find((x) => x.id === tripId);
+    t.items = t.items.filter((x) => x.id !== btn.dataset.id); save(); render();
+  }
+  if (act === "settings") {
+    if (confirm("الرمز: " + room + "\n\nهل تريدان استخدام رمز آخر؟")) {
+      localStorage.removeItem("hm_room"); room = ""; trips = []; cloud = null; render();
+    }
+  }
+});
+
+function joinRoom() {
+  const el = document.getElementById("joincode");
+  const v = (el.value || "").trim().toUpperCase();
+  if (v.length < 4) return;
+  room = v; localStorage.setItem("hm_room", room); connect(); render();
+}
+
+function addTrip() {
+  const place = (drafts.__place || "").trim();
+  if (!place) return;
+  trips = [...trips, { id: uid(), place, date: drafts.__date || "", items: [] }];
+  drafts.__place = ""; drafts.__date = ""; focusKey = null;
+  save(); render();
+}
+
+function addItem(tripId) {
+  const text = (drafts[tripId] || "").trim();
+  if (!text || !tripId) return;
+  const t = trips.find((x) => x.id === tripId);
+  t.items = [...(t.items || []), { id: uid(), text, done: false }];
+  drafts[tripId] = ""; focusKey = null;
+  save(); render();
+}
+
+/* ── go ────────────────────────────────────────────────── */
+if (room) connect(); else render();
+render();
+</script>
+</body>
+</html>
