@@ -86,18 +86,11 @@
 
 <script type="module">
 /* ─────────────────────────────────────────────────────────────
-   ١. ضعا إعدادات Firebase هنا  /  Paste your Firebase config here
-   Firebase console → Project settings → Your apps → Web app
+   ١. ضعا رابط Worker هنا  /  Paste your Cloudflare Worker URL here
+   Example: https://trip-sync.your-name.workers.dev
    Leave it empty and the app still works, but only on one phone.
    ───────────────────────────────────────────────────────────── */
-const FIREBASE_CONFIG = {
-    apiKey: "AIzaSyDW4C3VqrAPAz61V1g3c98TSiJNYDUCA6M",
-    authDomain: "trip-planner-682a1.firebaseapp.com",
-    projectId: "trip-planner-682a1",
-    storageBucket: "trip-planner-682a1.firebasestorage.app",
-    messagingSenderId: "762054336372",
-    appId: "1:762054336372:web:3f1023206df0fe4b801621"
-};
+const API = "";
 
 const ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const newCode = () =>
@@ -115,7 +108,6 @@ let drafts = {};
 let status = "";
 let bad = false;
 let saveTimer = null;
-let cloud = null; // { docRef, setDoc }
 
 /* ── dates ─────────────────────────────────────────────── */
 const fmtDate = (s) => {
@@ -136,38 +128,48 @@ const daysLeft = (s) => {
 
 /* ── storage ───────────────────────────────────────────── */
 const localKey = () => "hm_data_" + room;
+const endpoint = () => API.replace(/\/+$/, "") + "/" + room;
+let lastWrite = 0;
+let pollTimer = null;
 
 async function connect() {
-  if (!FIREBASE_CONFIG.apiKey) {
+  if (!API) {
     trips = JSON.parse(localStorage.getItem(localKey()) || "[]");
     status = "هذا الجهاز فقط — لم تُضبط المزامنة";
     render();
     return;
   }
+  await pull();
+  clearInterval(pollTimer);
+  pollTimer = setInterval(() => {
+    if (document.visibilityState === "visible") pull();
+  }, 6000);
+}
+
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") pull();
+});
+
+async function pull() {
+  if (!API || !room) return;
+  if (Date.now() - lastWrite < 2500) return; // our own edit is still settling
   try {
-    const [{ initializeApp }, fs] = await Promise.all([
-      import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"),
-      import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"),
-    ]);
-    const db = fs.getFirestore(initializeApp(FIREBASE_CONFIG));
-    const docRef = fs.doc(db, "honeymoon", room);
-    cloud = { docRef, setDoc: fs.setDoc };
-    fs.onSnapshot(
-      docRef,
-      (snap) => {
-        const data = snap.data();
-        trips = (data && data.trips) || [];
-        status = "محفوظ لكليكما";
-        bad = false;
-        render();
-      },
-      () => { status = "تعذّر الاتصال"; bad = true; render(); }
-    );
+    const res = await fetch(endpoint(), { cache: "no-store" });
+    if (!res.ok) throw new Error();
+    const data = await res.json();
+    const next = data.trips || [];
+    status = "محفوظ لكليكما";
+    bad = false;
+    if (JSON.stringify(next) !== JSON.stringify(trips)) {
+      trips = next;
+      render();
+    } else {
+      paintStatus();
+    }
   } catch (e) {
-    trips = JSON.parse(localStorage.getItem(localKey()) || "[]");
-    status = "تعذّر الاتصال — هذا الجهاز فقط";
+    status = "تعذّر الاتصال";
     bad = true;
-    render();
+    paintStatus();
   }
 }
 
@@ -175,16 +177,28 @@ function save() {
   status = "جارٍ الحفظ…"; bad = false; paintStatus();
   clearTimeout(saveTimer);
   saveTimer = setTimeout(async () => {
+    lastWrite = Date.now();
     try {
-      if (cloud) await cloud.setDoc(cloud.docRef, { trips });
-      else localStorage.setItem(localKey(), JSON.stringify(trips));
-      status = cloud ? "محفوظ لكليكما" : "محفوظ على هذا الجهاز";
+      if (API && room) {
+        const res = await fetch(endpoint(), {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ trips }),
+        });
+        if (!res.ok) throw new Error();
+        status = "محفوظ لكليكما";
+      } else {
+        localStorage.setItem(localKey(), JSON.stringify(trips));
+        status = "محفوظ على هذا الجهاز";
+      }
       bad = false;
+      lastWrite = Date.now();
     } catch (e) {
-      status = "تعذّر الحفظ"; bad = true;
+      status = "تعذّر الحفظ";
+      bad = true;
     }
     paintStatus();
-  }, 400);
+  }, 500);
 }
 
 function paintStatus() {
@@ -311,7 +325,7 @@ app.addEventListener("click", (e) => {
   }
   if (act === "settings") {
     if (confirm("الرمز: " + room + "\n\nهل تريدان استخدام رمز آخر؟")) {
-      localStorage.removeItem("hm_room"); room = ""; trips = []; cloud = null; render();
+      localStorage.removeItem("hm_room"); room = ""; trips = []; clearInterval(pollTimer); render();
     }
   }
 });
@@ -341,8 +355,8 @@ function addItem(tripId) {
 }
 
 /* ── go ────────────────────────────────────────────────── */
-if (room) connect(); else render();
 render();
+if (room) connect();
 </script>
 </body>
 </html>

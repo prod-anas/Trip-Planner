@@ -1,65 +1,59 @@
 # مخطط السفر — trip planner
 
-A single-file web app. No build step, no dependencies to install.
+A single-file web app for two people to plan trips together. No build step, no npm, no credit card.
 
-## 1. Put it on GitHub Pages
+- `index.html` — the app (goes on GitHub Pages)
+- `worker.js` — the sync backend (goes on Cloudflare)
 
-1. Create a new repository (public — Pages needs a paid plan for private repos).
-2. Upload `index.html` to the root of the repo.
+## 1. Put the app on GitHub Pages
+
+1. Create a public repository.
+2. Upload `index.html` to the root.
 3. **Settings → Pages → Source: Deploy from a branch → `main` / `(root)` → Save.**
-4. Wait about a minute. Your app is at `https://YOUR-USERNAME.github.io/YOUR-REPO/`
+4. A minute later it's live at `https://YOUR-USERNAME.github.io/YOUR-REPO/`
 
-It works right now, but each phone keeps its own copy. For shared editing, do step 2.
+It works already, but each phone keeps its own copy. Step 2 connects them.
 
-## 2. Turn on syncing (Firebase, free)
+## 2. Set up syncing (Cloudflare, free, no card)
 
-1. Go to [console.firebase.google.com](https://console.firebase.google.com) → **Add project**. Skip Analytics.
-2. **Build → Firestore Database → Create database** → pick a region → start in **production mode**.
-3. Open the **Rules** tab, replace everything with this, and publish:
-
-   ```
-   rules_version = '2';
-   service cloud.firestore {
-     match /databases/{database}/documents {
-       match /honeymoon/{code} {
-         allow read, write: if true;
-       }
-     }
-   }
-   ```
-
-4. **Project settings → Your apps → Web (`</>`)** → register the app → copy the `firebaseConfig` object.
-5. Open `index.html`, find `FIREBASE_CONFIG` near the top of the `<script>`, paste your values in, and uncomment the lines. It should end up like:
+1. Sign up at [dash.cloudflare.com](https://dash.cloudflare.com) — the Workers free plan needs no payment details.
+2. **Storage & Databases → KV → Create a namespace.** Name it `trips`.
+3. **Compute (Workers) → Create → Start from Hello World → Deploy.** Name it `trip-sync`.
+4. Open the worker → **Edit code**, delete what's there, paste all of `worker.js`, **Deploy**.
+5. Worker → **Settings → Bindings → Add → KV namespace.**
+   - Variable name: `TRIPS` (exactly this, capitals)
+   - KV namespace: `trips`
+   - Save, then **Deploy** once more.
+6. Copy the worker URL from its overview page — `https://trip-sync.SOMETHING.workers.dev`
+7. In `index.html`, near the top of the `<script>`, set:
 
    ```js
-   const FIREBASE_CONFIG = {
-     apiKey: "AIza...",
-     authDomain: "your-project.firebaseapp.com",
-     projectId: "your-project",
-     storageBucket: "your-project.appspot.com",
-     messagingSenderId: "123456789",
-     appId: "1:123:web:abc"
-   };
+   const API = "https://trip-sync.SOMETHING.workers.dev";
    ```
 
-6. Commit the change. Pages redeploys on its own.
+8. Commit. Pages redeploys itself.
+
+Test it: open the worker URL with `/TEST123` on the end in a browser. You should see `{"trips":[]}`.
 
 ## 3. Pair your two phones
 
 1. Open the site, tap **إنشاء رمز جديد**. You get a 6-character code.
 2. Send her the code. She opens the same URL and enters it under **أو أدخلا رمزاً موجوداً**.
-3. You're now on the same plan. Edits show up on the other phone within about a second.
+3. Same plan on both phones. Changes appear within a few seconds.
 
-The gear icon (⚙) shows your code again, or lets you switch to a different one.
+The gear icon (⚙) shows your code again or switches to a different one.
 
-On iPhone: open the URL in Safari → Share → **Add to Home Screen**. It then opens full-screen like a normal app.
+On iPhone: open the URL in Safari → Share → **Add to Home Screen**.
 
-## About those rules
+## Free tier headroom
 
-The rules above let anyone read or write any code they can guess. There are about a billion possible codes, so in practice nobody will stumble onto yours — but don't post the code publicly. If you want it properly locked down later, add Firebase Anonymous Auth and change the rule to `if request.auth != null`.
+Cloudflare's free Workers plan gives 100,000 requests a day, and KV allows 100,000 reads and 1,000 writes a day with 1 GB of storage. The app polls every 6 seconds only while the page is open and visible, and writes are batched half a second after you stop typing. Two people will not come close to any of these.
 
-Your Firebase API key sitting in the HTML is normal and expected — it identifies the project, it isn't a password. Access is controlled by the rules, not the key.
+## Security
 
-## Free tier limits
+There are no secrets in this setup — nothing to leak from the repo. The worker URL is public, and access is controlled by your 6-character code: about a billion combinations, so nobody will guess it. Don't post the code publicly.
 
-Firestore's free tier allows 50,000 reads and 20,000 writes a day. Two people planning a honeymoon will use a rounding error of that.
+Two optional hardening steps once it works:
+
+- In `worker.js`, change `ALLOW` from `"*"` to your Pages origin (`https://YOUR-USERNAME.github.io`) so only your own site can call it.
+- Use a longer code — the worker accepts anything from 4 to 12 characters, so you can invent your own instead of using the generated one.
