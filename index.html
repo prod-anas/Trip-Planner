@@ -154,7 +154,7 @@ async function pull() {
   if (!API || !room) return;
   if (Date.now() - lastWrite < 2500) return; // our own edit is still settling
   try {
-    const res = await fetch(endpoint(), { cache: "no-store" });
+    const res = await fetch(endpoint() + "?t=" + Date.now() , { cache: "no-store" });
     if (!res.ok) throw new Error();
     const data = await res.json();
     const next = data.trips || [];
