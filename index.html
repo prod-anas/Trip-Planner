@@ -20,11 +20,11 @@
   html, body { margin: 0; background: #fff; color: var(--ink); }
   body {
     font-family: system-ui, -apple-system, "SF Arabic", "Segoe UI", Tahoma, sans-serif;
-    font-size: 16px;
-    line-height: 1.5;
+    font-size: 16px; line-height: 1.5;
   }
   .wrap { max-width: 480px; margin: 0 auto; padding: 40px 20px 64px; }
-  h1 { font-size: 34px; font-weight: 700; letter-spacing: -0.5px; margin: 0; }
+
+  h1 { font-size: 32px; font-weight: 700; letter-spacing: -0.5px; margin: 0; }
   h2 { font-size: 22px; font-weight: 600; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .sub { color: var(--rose); margin: 8px 0 0; }
   .muted { color: var(--mute); }
@@ -33,30 +33,27 @@
   .top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
 
   button { font: inherit; cursor: pointer; border: 0; background: none; color: inherit; }
-  .btn {
-    height: 44px; width: 100%; border-radius: 12px;
-    background: var(--rose); color: #fff; font-weight: 500;
-  }
+  .btn { height: 44px; width: 100%; border-radius: 12px; background: var(--rose); color: #fff; font-weight: 500; }
   .btn:active { filter: brightness(0.92); }
-  .icon-btn {
-    height: 44px; width: 44px; flex: 0 0 44px; border-radius: 12px;
-    background: var(--rose); color: #fff; font-size: 22px; line-height: 1;
-  }
+  .btn.line { background: #fff; color: var(--rose); border: 1px solid var(--rose); }
+  .icon-btn { height: 44px; width: 44px; flex: 0 0 44px; border-radius: 12px; background: var(--rose); color: #fff; font-size: 22px; line-height: 1; }
   .ghost { color: var(--mute); font-size: 14px; padding: 4px 0; }
   .ghost:active { color: var(--rose); }
-  .refresh { color: var(--mute); font-size: 20px; padding: 8px; }
+  .link { color: var(--rose); font-size: 15px; padding: 4px 0; }
+  .tool { color: var(--mute); font-size: 19px; padding: 6px; }
+  .tool:active { color: var(--rose); }
 
   input {
     font: inherit; height: 44px; width: 100%; border: 0; border-radius: 12px;
     background: var(--fill); padding: 0 12px; color: var(--ink); outline: none;
   }
   input::placeholder { color: var(--mute); }
-  .card input { background: var(--fill); }
   .new input { background: #fff; }
 
-  .card { border: 1px solid var(--line); border-radius: 24px; padding: 20px; margin-bottom: 24px; }
-  .card .head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
-  .date { color: var(--rose); font-size: 14px; flex: 0 0 auto; }
+  .card { border: 1px solid var(--line); border-radius: 24px; padding: 20px; margin-bottom: 20px; }
+  .card .head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .card .head .grow { min-width: 0; flex: 1; }
+  .date { color: var(--rose); font-size: 14px; }
 
   .item { display: flex; align-items: center; gap: 12px; padding: 4px 0; }
   .item p { margin: 0; flex: 1; }
@@ -71,14 +68,21 @@
   .del:active { color: var(--rose); }
 
   .row { display: flex; gap: 8px; margin-top: 12px; }
-  .new { background: var(--fill); border-radius: 24px; padding: 20px; margin-top: 32px; }
+  .new { background: var(--fill); border-radius: 24px; padding: 20px; margin-top: 28px; }
   .new p { margin: 0 0 12px; font-weight: 600; }
   .new input { margin-bottom: 12px; }
 
-  .empty { text-align: center; color: var(--mute); padding: 56px 0; }
+  .plan { display: flex; align-items: center; gap: 12px; border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; margin-bottom: 10px; }
+  .plan .grow { flex: 1; min-width: 0; text-align: start; }
+  .plan b { display: block; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .plan small { color: var(--mute); }
+
+  .empty { text-align: center; color: var(--mute); padding: 48px 0; }
   .center { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; gap: 20px; }
-  .code { font-size: 26px; font-weight: 700; letter-spacing: 3px; direction: ltr; text-align: center; }
-  .note { background: #fff1f2; color: #9f1239; border-radius: 12px; padding: 12px; font-size: 14px; }
+  .toast {
+    position: fixed; inset-inline: 0; bottom: 28px; margin: 0 auto; width: fit-content;
+    background: var(--ink); color: #fff; padding: 10px 18px; border-radius: 999px; font-size: 15px;
+  }
 </style>
 </head>
 <body>
@@ -86,33 +90,32 @@
 
 <script type="module">
 /* ─────────────────────────────────────────────────────────────
-   ١. ضعا رابط Worker هنا  /  Paste your Cloudflare Worker URL here
-   Example: https://trip-sync.your-name.workers.dev
-   Leave it empty and the app still works, but only on one phone.
+   ضعا رابط Worker هنا  /  Paste your Cloudflare Worker URL here
    ───────────────────────────────────────────────────────────── */
-const API = "https://trip-sync.i-ana2010.workers.dev/";
+const API = "";
 
 const ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-const newCode = () =>
-  Array.from({ length: 6 }, () => ALPHABET[Math.floor(Math.random() * ALPHABET.length)]).join("");
+const newId = () =>
+  Array.from({ length: 12 }, () => ALPHABET[Math.floor(Math.random() * ALPHABET.length)]).join("");
 const uid = () => Math.random().toString(36).slice(2, 10);
 const esc = (s) =>
-  String(s).replace(/[&<>"']/g, (c) =>
+  String(s == null ? "" : s).replace(/[&<>"']/g, (c) =>
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])
   );
 
 const app = document.getElementById("app");
-let room = localStorage.getItem("hm_room") || "";
-let trips = [];
+let plan = null;          // { title, trips }
+let planId = "";
 let drafts = {};
+let editing = null;       // id of the destination being edited
 let status = "";
 let bad = false;
-let saveTimer = null;
+let saveTimer = null, pollTimer = null, lastWrite = 0;
 
 /* ── dates ─────────────────────────────────────────────── */
 const fmtDate = (s) => {
   if (!s) return "";
-  const [y, m, d] = s.split("-").map(Number);
+  const [y, m, d] = String(s).split("-").map(Number);
   if (!y || !m || !d) return "";
   try {
     return new Date(y, m - 1, d).toLocaleDateString("ar-u-nu-latn", { day: "numeric", month: "long" });
@@ -120,83 +123,74 @@ const fmtDate = (s) => {
 };
 const daysLeft = (s) => {
   if (!s) return null;
-  const [y, m, d] = s.split("-").map(Number);
+  const [y, m, d] = String(s).split("-").map(Number);
   if (!y || !m || !d) return null;
   const now = new Date(); now.setHours(0, 0, 0, 0);
   return Math.round((new Date(y, m - 1, d) - now) / 86400000);
 };
 
-/* ── storage ───────────────────────────────────────────── */
-const localKey = () => "hm_data_" + room;
-const endpoint = () => API.replace(/\/+$/, "") + "/" + room;
-let lastWrite = 0;
-let pollTimer = null;
+/* ── plans remembered on this device ───────────────────── */
+const readList = () => { try { return JSON.parse(localStorage.getItem("hm_plans") || "[]"); } catch (e) { return []; } };
+const writeList = (l) => localStorage.setItem("hm_plans", JSON.stringify(l.slice(0, 40)));
+function remember(id, title) {
+  const list = readList().filter((p) => p.id !== id);
+  list.unshift({ id, title: title || "خطة بدون اسم", seen: Date.now() });
+  writeList(list);
+}
+const forget = (id) => writeList(readList().filter((p) => p.id !== id));
 
-async function connect() {
+/* ── storage ───────────────────────────────────────────── */
+const endpoint = () => API.replace(/\/+$/, "") + "/" + planId;
+const localKey = () => "hm_plan_" + planId;
+const planUrl = () => location.origin + location.pathname + "#" + planId;
+
+async function pull() {
+  if (!planId) return;
   if (!API) {
-    trips = JSON.parse(localStorage.getItem(localKey()) || "[]");
-    status = "هذا الجهاز فقط — لم تُضبط المزامنة";
+    plan = JSON.parse(localStorage.getItem(localKey()) || 'null') || { title: "خطة جديدة", trips: [] };
+    status = "هذا الجهاز فقط — لم يُضبط الرابط";
     render();
     return;
   }
-  await pull();
-  clearInterval(pollTimer);
-  pollTimer = setInterval(() => {
-    if (document.visibilityState === "visible") pull();
-  }, 6000);
-}
-
-document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible") pull();
-});
-
-async function pull() {
-  if (!API || !room) return;
-  if (Date.now() - lastWrite < 2500) return; // our own edit is still settling
+  if (Date.now() - lastWrite < 2500) return;
   try {
-    const res = await fetch(endpoint() + "?t=" + Date.now() , { cache: "no-store" });
+    const res = await fetch(endpoint() + "?t=" + Date.now(), { cache: "no-store" });
     if (!res.ok) throw new Error();
     const data = await res.json();
-    const next = data.trips || [];
-    status = "محفوظ لكليكما";
-    bad = false;
-    if (JSON.stringify(next) !== JSON.stringify(trips)) {
-      trips = next;
+    const next = { title: data.title || "خطة جديدة", trips: data.trips || [] };
+    status = "محفوظ لكليكما"; bad = false;
+    if (JSON.stringify(next) !== JSON.stringify(plan)) {
+      plan = next;
+      remember(planId, plan.title);
       render();
-    } else {
-      paintStatus();
-    }
+    } else paintStatus();
   } catch (e) {
-    status = "تعذّر الاتصال";
-    bad = true;
-    paintStatus();
+    status = "تعذّر الاتصال"; bad = true; paintStatus();
   }
 }
 
 function save() {
+  if (!plan || !planId) return;
+  remember(planId, plan.title);
   status = "جارٍ الحفظ…"; bad = false; paintStatus();
   clearTimeout(saveTimer);
   saveTimer = setTimeout(async () => {
     lastWrite = Date.now();
     try {
-      if (API && room) {
+      if (API) {
         const res = await fetch(endpoint(), {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ trips }),
+          body: JSON.stringify(plan),
         });
         if (!res.ok) throw new Error();
         status = "محفوظ لكليكما";
       } else {
-        localStorage.setItem(localKey(), JSON.stringify(trips));
+        localStorage.setItem(localKey(), JSON.stringify(plan));
         status = "محفوظ على هذا الجهاز";
       }
-      bad = false;
-      lastWrite = Date.now();
-    } catch (e) {
-      status = "تعذّر الحفظ";
-      bad = true;
-    }
+      bad = false; lastWrite = Date.now();
+    } catch (e) { status = "تعذّر الحفظ"; bad = true; }
     paintStatus();
   }, 500);
 }
@@ -206,157 +200,260 @@ function paintStatus() {
   if (el) { el.textContent = status; el.className = "status" + (bad ? " bad" : ""); }
 }
 
+let toastTimer = null;
+function toast(msg) {
+  const old = document.querySelector(".toast");
+  if (old) old.remove();
+  const el = document.createElement("div");
+  el.className = "toast"; el.textContent = msg;
+  document.body.appendChild(el);
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.remove(), 2000);
+}
+
 /* ── screens ───────────────────────────────────────────── */
-function renderJoin() {
+function renderHome() {
+  const list = readList();
   app.innerHTML = `
-    <div class="center">
-      <div>
-        <h1>مخطط السفر</h1>
-        <p class="muted" style="margin-top:12px">
-          أنشئا رمزاً واحداً واستخدماه على الهاتفين، لتظهر التعديلات عند كليكما.
-        </p>
-      </div>
-      <button class="btn" data-act="make">إنشاء رمز جديد</button>
-      <div>
-        <p class="muted" style="margin:0 0 8px">أو أدخلا رمزاً موجوداً</p>
-        <div class="row" style="margin:0">
-          <input id="joincode" placeholder="مثال: K7QM2P" style="text-transform:uppercase">
-          <button class="icon-btn" data-act="join">←</button>
-        </div>
-      </div>
+    <h1>مخطط السفر</h1>
+    <p class="muted" style="margin-top:8px">كل خطة لها رابط خاص — أنشئا خطة وشاركا رابطها.</p>
+
+    <div style="margin-top:24px">
+      <button class="btn" data-act="newplan">إنشاء خطة جديدة</button>
+    </div>
+
+    <div style="margin-top:32px">
+      <p style="font-weight:600;margin:0 0 12px">خططي</p>
+      ${list.length === 0 ? `<p class="empty">لا توجد خطط على هذا الجهاز.</p>` : ""}
+      ${list.map((p) => `
+        <div class="plan" data-plan="${esc(p.id)}">
+          <button class="grow" data-act="open">
+            <b>${esc(p.title)}</b>
+            <small>${esc(p.id)}</small>
+          </button>
+          <button class="tool" data-act="sharelist" aria-label="مشاركة">⇪</button>
+          <button class="del" data-act="forget" aria-label="إزالة">✕</button>
+        </div>`).join("")}
+    </div>
+
+    <div class="new">
+      <p>فتح خطة برابط</p>
+      <input id="paste" placeholder="الصقا الرابط هنا">
+      <button class="btn line" data-act="openlink">فتح</button>
     </div>`;
 }
 
-function render() {
-  if (!room) return renderJoin();
-
-  const dated = trips.filter((t) => t.date).sort((a, b) => a.date.localeCompare(b.date));
+function renderPlan() {
+  if (!plan) {
+    app.innerHTML = `<p class="empty">جارٍ الفتح…</p>`;
+    return;
+  }
+  const dated = plan.trips.filter((t) => t.date).sort((a, b) => a.date.localeCompare(b.date));
   const left = dated.length ? daysLeft(dated[0].date) : null;
 
-  const cards = trips.map((t) => `
-    <div class="card" data-trip="${t.id}">
-      <div class="head">
-        <h2>${esc(t.place)}</h2>
-        ${t.date ? `<span class="date">${fmtDate(t.date)}</span>` : ""}
-      </div>
-      <div style="margin-top:16px">
-        ${(t.items || []).map((i) => `
-          <div class="item">
-            <button class="tick ${i.done ? "on" : ""}" data-act="tick" data-id="${i.id}">✓</button>
-            <p class="${i.done ? "done" : ""}">${esc(i.text)}</p>
-            <button class="del" data-act="delitem" data-id="${i.id}">✕</button>
-          </div>`).join("")}
-      </div>
-      <div class="row">
-        <input data-draft="${t.id}" placeholder="أضيفا نشاطاً" value="${esc(drafts[t.id] || "")}">
-        <button class="icon-btn" data-act="additem">+</button>
-      </div>
-      <button class="ghost" data-act="deltrip">حذف الوجهة</button>
-    </div>`).join("");
+  const cards = plan.trips.map((t) => {
+    if (editing === t.id) {
+      return `
+      <div class="card" data-trip="${t.id}">
+        <input data-edit="place" value="${esc(drafts.__place)}" placeholder="إلى أين؟">
+        <input data-edit="date" type="date" value="${esc(drafts.__date)}" style="margin-top:8px">
+        <div class="row">
+          <button class="btn" data-act="saveedit">حفظ</button>
+          <button class="btn line" data-act="canceledit">إلغاء</button>
+        </div>
+      </div>`;
+    }
+    return `
+      <div class="card" data-trip="${t.id}">
+        <div class="head">
+          <div class="grow">
+            <h2>${esc(t.place)}</h2>
+            ${t.date ? `<span class="date">${fmtDate(t.date)}</span>` : `<span class="date muted">بدون تاريخ</span>`}
+          </div>
+          <button class="tool" data-act="edit" aria-label="تعديل">✎</button>
+          <button class="del" data-act="deltrip" aria-label="حذف">✕</button>
+        </div>
+        <div style="margin-top:14px">
+          ${(t.items || []).map((i) => `
+            <div class="item">
+              <button class="tick ${i.done ? "on" : ""}" data-act="tick" data-id="${i.id}">✓</button>
+              <p class="${i.done ? "done" : ""}">${esc(i.text)}</p>
+              <button class="del" data-act="delitem" data-id="${i.id}">✕</button>
+            </div>`).join("")}
+        </div>
+        <div class="row">
+          <input data-draft="${t.id}" placeholder="أضيفا نشاطاً" value="${esc(drafts[t.id] || "")}">
+          <button class="icon-btn" data-act="additem">+</button>
+        </div>
+      </div>`;
+  }).join("");
 
   app.innerHTML = `
-    <div class="top">
-      <div>
-        <h1>مخطط السفر</h1>
+    <button class="link" data-act="home">← كل الخطط</button>
+    <div class="top" style="margin-top:8px">
+      <div class="grow" style="min-width:0">
+        <h1>${esc(plan.title)}</h1>
         ${left !== null && left >= 0
           ? `<p class="sub">${left === 0 ? "الرحلة اليوم" : "باقي " + left + " يوم على أول رحلة"}</p>`
           : `<p class="sub muted">خطتنا معاً</p>`}
       </div>
-      <button class="refresh" data-act="settings" aria-label="الرمز">⚙</button>
+      <button class="tool" data-act="rename" aria-label="تغيير الاسم">✎</button>
+      <button class="tool" data-act="share" aria-label="مشاركة">⇪</button>
     </div>
     <p id="status" class="status${bad ? " bad" : ""}">${esc(status)}</p>
 
     <div style="margin-top:24px">${cards}</div>
-    ${trips.length === 0 ? `<p class="empty">لا توجد وجهات بعد.<br>أضيفا أول مكان تحلمان به.</p>` : ""}
+    ${plan.trips.length === 0 ? `<p class="empty">لا توجد وجهات بعد.<br>أضيفا أول مكان تحلمان به.</p>` : ""}
 
     <div class="new">
       <p>وجهة جديدة</p>
-      <input id="place" placeholder="إلى أين؟" value="${esc(drafts.__place || "")}">
-      <input id="date" type="date" value="${esc(drafts.__date || "")}">
+      <input id="place" placeholder="إلى أين؟" value="${esc(drafts.__newplace || "")}">
+      <input id="date" type="date" value="${esc(drafts.__newdate || "")}">
       <button class="btn" data-act="addtrip">إضافة</button>
     </div>`;
 
   restoreFocus();
 }
 
+function render() { planId ? renderPlan() : renderHome(); }
+
 let focusKey = null, focusPos = 0;
 function restoreFocus() {
   if (!focusKey) return;
-  const el = app.querySelector(`[data-draft="${focusKey}"], #${CSS.escape(focusKey)}`);
+  const el = app.querySelector(`[data-draft="${focusKey}"]`) || document.getElementById(focusKey);
   if (el) { el.focus(); try { el.setSelectionRange(focusPos, focusPos); } catch (e) {} }
 }
 
-/* ── events ────────────────────────────────────────────── */
+/* ── routing ───────────────────────────────────────────── */
+function route() {
+  const id = (location.hash || "").replace(/^#\/?/, "").toUpperCase();
+  clearInterval(pollTimer);
+  editing = null; drafts = {};
+  if (!/^[A-Z0-9]{4,12}$/.test(id)) {
+    planId = ""; plan = null; status = "";
+    render();
+    return;
+  }
+  planId = id; plan = null; status = "جارٍ الفتح…";
+  render();
+  pull();
+  pollTimer = setInterval(() => { if (document.visibilityState === "visible") pull(); }, 6000);
+}
+window.addEventListener("hashchange", route);
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") pull(); });
+
+/* ── actions ───────────────────────────────────────────── */
 app.addEventListener("input", (e) => {
   const el = e.target;
   if (el.dataset.draft) { drafts[el.dataset.draft] = el.value; focusKey = el.dataset.draft; }
-  else if (el.id === "place") { drafts.__place = el.value; focusKey = "place"; }
-  else if (el.id === "date") { drafts.__date = el.value; focusKey = "date"; }
+  else if (el.dataset.edit === "place") { drafts.__place = el.value; focusKey = null; }
+  else if (el.dataset.edit === "date") { drafts.__date = el.value; focusKey = null; }
+  else if (el.id === "place") { drafts.__newplace = el.value; focusKey = "place"; }
+  else if (el.id === "date") { drafts.__newdate = el.value; focusKey = "date"; }
   focusPos = el.selectionStart || 0;
 });
 
 app.addEventListener("keydown", (e) => {
   if (e.key !== "Enter") return;
   if (e.target.dataset.draft) addItem(e.target.dataset.draft);
-  if (e.target.id === "place") addTrip();
-  if (e.target.id === "joincode") joinRoom();
+  else if (e.target.id === "place") addTrip();
+  else if (e.target.id === "paste") openLink();
 });
 
 app.addEventListener("click", (e) => {
   const btn = e.target.closest("button");
   if (!btn) return;
   const act = btn.dataset.act;
-  const card = btn.closest("[data-trip]");
-  const tripId = card && card.dataset.trip;
+  const tripId = btn.closest("[data-trip]") && btn.closest("[data-trip]").dataset.trip;
+  const rowId = btn.closest("[data-plan]") && btn.closest("[data-plan]").dataset.plan;
 
-  if (act === "make") { room = newCode(); localStorage.setItem("hm_room", room); connect(); render(); }
-  if (act === "join") joinRoom();
+  if (act === "newplan") {
+    const id = newId();
+    plan = { title: "خطة جديدة", trips: [] };
+    planId = id;
+    save();               // create the record before anyone opens the link
+    location.hash = id;
+  }
+  if (act === "open") { location.hash = rowId; }
+  if (act === "openlink") openLink();
+  if (act === "home") { location.hash = ""; route(); }
+  if (act === "forget") { forget(rowId); render(); }
+  if (act === "sharelist") share(location.origin + location.pathname + "#" + rowId);
+  if (act === "share") share(planUrl());
+
+  if (act === "rename") {
+    const name = prompt("اسم الخطة", plan.title);
+    if (name && name.trim()) { plan.title = name.trim(); save(); render(); }
+  }
+
+  if (act === "edit") {
+    const t = plan.trips.find((x) => x.id === tripId);
+    editing = tripId; drafts.__place = t.place; drafts.__date = t.date || "";
+    render();
+  }
+  if (act === "canceledit") { editing = null; render(); }
+  if (act === "saveedit") {
+    const t = plan.trips.find((x) => x.id === tripId);
+    const place = (drafts.__place || "").trim();
+    if (place) { t.place = place; t.date = drafts.__date || ""; save(); }
+    editing = null; render();
+  }
+
   if (act === "addtrip") addTrip();
   if (act === "additem") addItem(tripId);
-  if (act === "deltrip") { trips = trips.filter((t) => t.id !== tripId); save(); render(); }
+  if (act === "deltrip") {
+    const t = plan.trips.find((x) => x.id === tripId);
+    if (confirm("حذف «" + t.place + "» وكل أنشطتها؟")) {
+      plan.trips = plan.trips.filter((x) => x.id !== tripId); save(); render();
+    }
+  }
   if (act === "tick") {
-    const t = trips.find((x) => x.id === tripId);
+    const t = plan.trips.find((x) => x.id === tripId);
     const i = t.items.find((x) => x.id === btn.dataset.id);
     i.done = !i.done; save(); render();
   }
   if (act === "delitem") {
-    const t = trips.find((x) => x.id === tripId);
+    const t = plan.trips.find((x) => x.id === tripId);
     t.items = t.items.filter((x) => x.id !== btn.dataset.id); save(); render();
-  }
-  if (act === "settings") {
-    if (confirm("الرمز: " + room + "\n\nهل تريدان استخدام رمز آخر؟")) {
-      localStorage.removeItem("hm_room"); room = ""; trips = []; clearInterval(pollTimer); render();
-    }
   }
 });
 
-function joinRoom() {
-  const el = document.getElementById("joincode");
+function openLink() {
+  const el = document.getElementById("paste");
   const v = (el.value || "").trim().toUpperCase();
-  if (v.length < 4) return;
-  room = v; localStorage.setItem("hm_room", room); connect(); render();
+  const m = v.match(/[A-Z0-9]{4,12}$/);
+  if (!m) { toast("رابط غير صالح"); return; }
+  location.hash = m[0];
+}
+
+async function share(url) {
+  try {
+    if (navigator.share) { await navigator.share({ title: "مخطط السفر", url }); return; }
+    await navigator.clipboard.writeText(url);
+    toast("تم نسخ الرابط");
+  } catch (e) {
+    prompt("انسخا الرابط", url);
+  }
 }
 
 function addTrip() {
-  const place = (drafts.__place || "").trim();
-  if (!place) return;
-  trips = [...trips, { id: uid(), place, date: drafts.__date || "", items: [] }];
-  drafts.__place = ""; drafts.__date = ""; focusKey = null;
+  const place = (drafts.__newplace || "").trim();
+  if (!place || !plan) return;
+  plan.trips = [...plan.trips, { id: uid(), place, date: drafts.__newdate || "", items: [] }];
+  drafts.__newplace = ""; drafts.__newdate = ""; focusKey = null;
   save(); render();
 }
 
 function addItem(tripId) {
   const text = (drafts[tripId] || "").trim();
   if (!text || !tripId) return;
-  const t = trips.find((x) => x.id === tripId);
+  const t = plan.trips.find((x) => x.id === tripId);
   t.items = [...(t.items || []), { id: uid(), text, done: false }];
   drafts[tripId] = ""; focusKey = null;
   save(); render();
 }
 
 /* ── go ────────────────────────────────────────────────── */
-render();
-if (room) connect();
-</script>
-</body>
-</html>
+route();
+if (planId && !API) pull();
+</script></body></html>
