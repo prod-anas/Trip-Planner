@@ -1,7 +1,7 @@
 // مخطط السفر — offline support
 // Network-first for the app shell so updates land immediately,
 // cache as fallback so it opens on a plane.
-const CACHE = "trip-planner-v1";
+const CACHE = "trip-planner-v2";
 const SHELL = ["./", "./index.html"];
 
 self.addEventListener("install", (e) => {
