@@ -9,80 +9,82 @@
 <meta name="theme-color" content="#ffffff">
 <title>مخطط السفر</title>
 <style>
-  :root {
-    --rose: #e11d48;
-    --ink: #1c1917;
-    --mute: #a8a29e;
-    --line: #e7e5e4;
-    --fill: #f5f5f4;
+  :root { --rose:#e11d48; --ink:#1c1917; --mute:#a8a29e; --line:#e7e5e4; --fill:#f5f5f4; --ok:#047857; }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { margin:0; background:#fff; color:var(--ink); }
+  body { font-family:system-ui,-apple-system,"SF Arabic","Segoe UI",Tahoma,sans-serif; font-size:16px; line-height:1.5; }
+  .wrap { max-width:480px; margin:0 auto; padding:36px 20px 64px; }
+
+  h1 { font-size:30px; font-weight:700; letter-spacing:-0.5px; margin:0; }
+  h2 { font-size:21px; font-weight:600; margin:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .sub { color:var(--rose); margin:6px 0 0; }
+  .muted { color:var(--mute); }
+  .status { font-size:14px; color:var(--mute); margin:10px 0 0; }
+  .status.bad { color:var(--rose); }
+  .top { display:flex; align-items:flex-start; justify-content:space-between; gap:6px; }
+  .grow { flex:1; min-width:0; }
+
+  button { font:inherit; cursor:pointer; border:0; background:none; color:inherit; }
+  .btn { height:44px; width:100%; border-radius:12px; background:var(--rose); color:#fff; font-weight:500; }
+  .btn:active { filter:brightness(.92); }
+  .btn.line { background:#fff; color:var(--rose); border:1px solid var(--rose); }
+  .icon-btn { height:44px; width:44px; flex:0 0 44px; border-radius:12px; background:var(--rose); color:#fff; font-size:22px; line-height:1; }
+  .link { color:var(--rose); font-size:15px; padding:4px 0; }
+  .tool { color:var(--mute); font-size:18px; padding:6px; }
+  .tool:active { color:var(--rose); }
+  .del { color:#d6d3d1; font-size:18px; padding:4px; }
+  .del:active { color:var(--rose); }
+
+  input, select, textarea {
+    font:inherit; height:44px; width:100%; border:0; border-radius:12px;
+    background:var(--fill); padding:0 12px; color:var(--ink); outline:none;
   }
-  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  html, body { margin: 0; background: #fff; color: var(--ink); }
-  body {
-    font-family: system-ui, -apple-system, "SF Arabic", "Segoe UI", Tahoma, sans-serif;
-    font-size: 16px; line-height: 1.5;
-  }
-  .wrap { max-width: 480px; margin: 0 auto; padding: 40px 20px 64px; }
+  textarea { height:auto; padding:10px 12px; resize:vertical; }
+  input::placeholder, textarea::placeholder { color:var(--mute); }
+  .new input, .new select, .new textarea { background:#fff; }
 
-  h1 { font-size: 32px; font-weight: 700; letter-spacing: -0.5px; margin: 0; }
-  h2 { font-size: 22px; font-weight: 600; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .sub { color: var(--rose); margin: 8px 0 0; }
-  .muted { color: var(--mute); }
-  .status { font-size: 14px; color: var(--mute); margin: 12px 0 0; }
-  .status.bad { color: var(--rose); }
-  .top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .card { border:1px solid var(--line); border-radius:22px; padding:18px; margin-bottom:18px; }
+  .card .head { display:flex; align-items:center; justify-content:space-between; gap:4px; }
+  .date { color:var(--rose); font-size:14px; }
 
-  button { font: inherit; cursor: pointer; border: 0; background: none; color: inherit; }
-  .btn { height: 44px; width: 100%; border-radius: 12px; background: var(--rose); color: #fff; font-weight: 500; }
-  .btn:active { filter: brightness(0.92); }
-  .btn.line { background: #fff; color: var(--rose); border: 1px solid var(--rose); }
-  .icon-btn { height: 44px; width: 44px; flex: 0 0 44px; border-radius: 12px; background: var(--rose); color: #fff; font-size: 22px; line-height: 1; }
-  .ghost { color: var(--mute); font-size: 14px; padding: 4px 0; }
-  .ghost:active { color: var(--rose); }
-  .link { color: var(--rose); font-size: 15px; padding: 4px 0; }
-  .tool { color: var(--mute); font-size: 19px; padding: 6px; }
-  .tool:active { color: var(--rose); }
+  .item { display:flex; align-items:flex-start; gap:10px; padding:5px 0; }
+  .item .body { flex:1; min-width:0; }
+  .item p { margin:0; }
+  .item p.done { color:var(--mute); text-decoration:line-through; }
+  .meta { font-size:13px; color:var(--mute); margin-top:2px; word-break:break-word; }
+  .meta a { color:var(--rose); }
+  .who { display:inline-block; background:var(--fill); border-radius:999px; padding:1px 9px; font-size:12px; color:#57534e; margin-inline-end:6px; }
+  .tick { height:26px; width:26px; flex:0 0 26px; margin-top:2px; border-radius:999px; border:1px solid var(--line);
+          display:flex; align-items:center; justify-content:center; font-size:14px; color:transparent; }
+  .tick.on { background:var(--rose); border-color:var(--rose); color:#fff; }
 
-  input {
-    font: inherit; height: 44px; width: 100%; border: 0; border-radius: 12px;
-    background: var(--fill); padding: 0 12px; color: var(--ink); outline: none;
-  }
-  input::placeholder { color: var(--mute); }
-  .new input { background: #fff; }
+  .row { display:flex; gap:8px; margin-top:10px; }
+  .row.tight { margin-top:8px; }
+  .new { background:var(--fill); border-radius:22px; padding:18px; margin-top:24px; }
+  .new p.t { margin:0 0 12px; font-weight:600; }
+  .new input, .new select, .new textarea { margin-bottom:10px; }
 
-  .card { border: 1px solid var(--line); border-radius: 24px; padding: 20px; margin-bottom: 20px; }
-  .card .head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-  .card .head .grow { min-width: 0; flex: 1; }
-  .date { color: var(--rose); font-size: 14px; }
+  .plan { display:flex; align-items:center; gap:10px; border:1px solid var(--line); border-radius:16px; padding:13px 15px; margin-bottom:10px; }
+  .plan b { display:block; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .plan small { color:var(--mute); }
+  .plan .grow { text-align:start; }
 
-  .item { display: flex; align-items: center; gap: 12px; padding: 4px 0; }
-  .item p { margin: 0; flex: 1; }
-  .item p.done { color: var(--mute); text-decoration: line-through; }
-  .tick {
-    height: 28px; width: 28px; flex: 0 0 28px; border-radius: 999px;
-    border: 1px solid var(--line); display: flex; align-items: center; justify-content: center;
-    font-size: 15px; color: transparent;
-  }
-  .tick.on { background: var(--rose); border-color: var(--rose); color: #fff; }
-  .del { color: #d6d3d1; font-size: 18px; padding: 4px; }
-  .del:active { color: var(--rose); }
+  details { border-top:1px solid var(--line); padding:14px 0 4px; }
+  summary { font-weight:600; cursor:pointer; list-style:none; display:flex; justify-content:space-between; align-items:center; }
+  summary::-webkit-details-marker { display:none; }
+  summary span.hint { font-weight:400; color:var(--mute); font-size:14px; }
 
-  .row { display: flex; gap: 8px; margin-top: 12px; }
-  .new { background: var(--fill); border-radius: 24px; padding: 20px; margin-top: 28px; }
-  .new p { margin: 0 0 12px; font-weight: 600; }
-  .new input { margin-bottom: 12px; }
+  .chip { display:inline-flex; align-items:center; gap:6px; background:var(--fill); border-radius:999px; padding:6px 12px; margin:0 0 8px 8px; }
+  .money { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--line); }
+  .money:last-child { border-bottom:0; }
+  .bal { display:flex; justify-content:space-between; padding:5px 0; }
+  .pos { color:var(--ok); } .neg { color:var(--rose); }
 
-  .plan { display: flex; align-items: center; gap: 12px; border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; margin-bottom: 10px; }
-  .plan .grow { flex: 1; min-width: 0; text-align: start; }
-  .plan b { display: block; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .plan small { color: var(--mute); }
-
-  .empty { text-align: center; color: var(--mute); padding: 48px 0; }
-  .center { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; gap: 20px; }
-  .toast {
-    position: fixed; inset-inline: 0; bottom: 28px; margin: 0 auto; width: fit-content;
-    background: var(--ink); color: #fff; padding: 10px 18px; border-radius: 999px; font-size: 15px;
-  }
+  .banner { background:#fff1f2; color:#9f1239; border-radius:12px; padding:10px 14px; font-size:14px; margin-top:12px; }
+  .banner.grey { background:var(--fill); color:#57534e; }
+  .empty { text-align:center; color:var(--mute); padding:44px 0; }
+  .toast { position:fixed; inset-inline:0; bottom:26px; margin:0 auto; width:fit-content;
+           background:var(--ink); color:#fff; padding:10px 18px; border-radius:999px; font-size:15px; z-index:9; }
 </style>
 </head>
 <body>
@@ -90,36 +92,34 @@
 
 <script type="module">
 /* ─────────────────────────────────────────────────────────────
-   ضعا رابط Worker هنا  /  Paste your Cloudflare Worker URL here
+   رابط Worker  /  Cloudflare Worker URL
    ───────────────────────────────────────────────────────────── */
 const API = "https://trip-sync.i-ana2010.workers.dev";
 
-const ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-const newId = () =>
-  Array.from({ length: 12 }, () => ALPHABET[Math.floor(Math.random() * ALPHABET.length)]).join("");
+const AB = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+const newId = (n = 12) => Array.from({ length: n }, () => AB[Math.floor(Math.random() * AB.length)]).join("");
 const uid = () => Math.random().toString(36).slice(2, 10);
-const esc = (s) =>
-  String(s == null ? "" : s).replace(/[&<>"']/g, (c) =>
-    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])
-  );
+const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) =>
+  ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const linkify = (s) => esc(s).replace(/(https?:\/\/[^\s]+)/g,
+  '<a href="$1" target="_blank" rel="noopener">$1</a>');
 
 const app = document.getElementById("app");
-let plan = null;          // { title, trips }
-let planId = "";
-let drafts = {};
-let editing = null;       // id of the destination being edited
-let status = "";
-let bad = false;
+let plan = null, planId = "", readonly = false, offline = false;
+let drafts = {}, editing = null, editItem = null;
+let status = "", bad = false;
 let saveTimer = null, pollTimer = null, lastWrite = 0;
+const openSecs = new Set();
+
+const blank = () => ({ title: "خطة جديدة", currency: "$", people: [], trips: [], expenses: [], viewId: newId() });
 
 /* ── dates ─────────────────────────────────────────────── */
 const fmtDate = (s) => {
   if (!s) return "";
   const [y, m, d] = String(s).split("-").map(Number);
   if (!y || !m || !d) return "";
-  try {
-    return new Date(y, m - 1, d).toLocaleDateString("ar-u-nu-latn", { day: "numeric", month: "long" });
-  } catch (e) { return s; }
+  try { return new Date(y, m - 1, d).toLocaleDateString("ar-u-nu-latn", { day: "numeric", month: "long" }); }
+  catch (e) { return s; }
 };
 const daysLeft = (s) => {
   if (!s) return null;
@@ -129,68 +129,78 @@ const daysLeft = (s) => {
   return Math.round((new Date(y, m - 1, d) - now) / 86400000);
 };
 
-/* ── plans remembered on this device ───────────────────── */
+/* ── device list ───────────────────────────────────────── */
 const readList = () => { try { return JSON.parse(localStorage.getItem("hm_plans") || "[]"); } catch (e) { return []; } };
 const writeList = (l) => localStorage.setItem("hm_plans", JSON.stringify(l.slice(0, 40)));
-function remember(id, title) {
+function remember(id, title, ro) {
   const list = readList().filter((p) => p.id !== id);
-  list.unshift({ id, title: title || "خطة بدون اسم", seen: Date.now() });
+  list.unshift({ id, title: title || "خطة بدون اسم", ro: !!ro, seen: Date.now() });
   writeList(list);
 }
 const forget = (id) => writeList(readList().filter((p) => p.id !== id));
 
 /* ── storage ───────────────────────────────────────────── */
 const endpoint = () => API.replace(/\/+$/, "") + "/" + planId;
-const localKey = () => "hm_plan_" + planId;
-const planUrl = () => location.origin + location.pathname + "#" + planId;
+const cacheKey = () => "hm_cache_" + planId;
+const urlFor = (id) => location.origin + location.pathname + "#" + id;
+
+function adopt(data) {
+  readonly = !!data._readonly;
+  plan = Object.assign(blank(), data);
+  plan.people = plan.people || [];
+  plan.expenses = plan.expenses || [];
+  plan.trips = plan.trips || [];
+  if (!readonly && !plan.viewId) { plan.viewId = newId(); save(); }
+  remember(planId, plan.title, readonly);
+}
 
 async function pull() {
   if (!planId) return;
   if (!API) {
-    plan = JSON.parse(localStorage.getItem(localKey()) || 'null') || { title: "خطة جديدة", trips: [] };
-    status = "هذا الجهاز فقط — لم يُضبط الرابط";
-    render();
-    return;
+    const c = localStorage.getItem(cacheKey());
+    adopt(c ? JSON.parse(c) : blank());
+    status = "هذا الجهاز فقط — لم يُضبط الرابط"; render(); return;
   }
   if (Date.now() - lastWrite < 2500) return;
   try {
     const res = await fetch(endpoint() + "?t=" + Date.now(), { cache: "no-store" });
     if (!res.ok) throw new Error();
     const data = await res.json();
-    const next = { title: data.title || "خطة جديدة", trips: data.trips || [] };
-    status = "محفوظ لكليكما"; bad = false;
-    if (JSON.stringify(next) !== JSON.stringify(plan)) {
-      plan = next;
-      remember(planId, plan.title);
-      render();
-    } else paintStatus();
+    localStorage.setItem(cacheKey(), JSON.stringify(data));
+    offline = false;
+    status = readonlyGuess(data) ? "عرض فقط" : "محفوظ للجميع"; bad = false;
+    if (JSON.stringify(data) !== JSON.stringify(stripped())) { adopt(data); render(); } else paintStatus();
   } catch (e) {
-    status = "تعذّر الاتصال"; bad = true; paintStatus();
+    const c = localStorage.getItem(cacheKey());
+    if (c && !plan) { adopt(JSON.parse(c)); render(); }
+    offline = true; status = "غير متصل — نسخة محفوظة"; bad = true; paintStatus();
   }
 }
+const readonlyGuess = (d) => !!d._readonly;
+const stripped = () => { if (!plan) return null; const c = { ...plan }; if (!readonly) delete c._readonly; return c; };
 
 function save() {
-  if (!plan || !planId) return;
-  remember(planId, plan.title);
+  if (!plan || !planId || readonly) return;
+  remember(planId, plan.title, false);
+  localStorage.setItem(cacheKey(), JSON.stringify(plan));
   status = "جارٍ الحفظ…"; bad = false; paintStatus();
   clearTimeout(saveTimer);
   saveTimer = setTimeout(async () => {
     lastWrite = Date.now();
     try {
-      if (API) {
-        const res = await fetch(endpoint(), {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(plan),
+      if (!API) { status = "محفوظ على هذا الجهاز"; bad = false; paintStatus(); return; }
+      const res = await fetch(endpoint(), {
+        method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(plan),
+      });
+      if (res.status === 409) {           // view link collided — pick another
+        plan.viewId = newId();
+        const retry = await fetch(endpoint(), {
+          method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(plan),
         });
-        if (!res.ok) throw new Error();
-        status = "محفوظ لكليكما";
-      } else {
-        localStorage.setItem(localKey(), JSON.stringify(plan));
-        status = "محفوظ على هذا الجهاز";
-      }
-      bad = false; lastWrite = Date.now();
-    } catch (e) { status = "تعذّر الحفظ"; bad = true; }
+        if (!retry.ok) throw new Error();
+      } else if (!res.ok) throw new Error();
+      status = "محفوظ للجميع"; bad = false; offline = false; lastWrite = Date.now();
+    } catch (e) { status = "غير متصل — سيُحفظ عند عودة الاتصال"; bad = true; offline = true; }
     paintStatus();
   }, 500);
 }
@@ -202,120 +212,276 @@ function paintStatus() {
 
 let toastTimer = null;
 function toast(msg) {
-  const old = document.querySelector(".toast");
-  if (old) old.remove();
+  const old = document.querySelector(".toast"); if (old) old.remove();
   const el = document.createElement("div");
-  el.className = "toast"; el.textContent = msg;
-  document.body.appendChild(el);
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.remove(), 2000);
+  el.className = "toast"; el.textContent = msg; document.body.appendChild(el);
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => el.remove(), 2000);
 }
 
-/* ── screens ───────────────────────────────────────────── */
+/* ── money ─────────────────────────────────────────────── */
+const cur = () => (plan && plan.currency) || "$";
+const fmtMoney = (n) => cur() + " " + (Math.round(n * 100) / 100).toLocaleString("en-US", { maximumFractionDigits: 2 });
+
+function balances() {
+  const people = plan.people.length ? plan.people : [];
+  if (!people.length) return [];
+  const net = {}; people.forEach((p) => (net[p] = 0));
+  plan.expenses.forEach((e) => {
+    const share = e.amount / people.length;
+    people.forEach((p) => (net[p] -= share));
+    if (net[e.payer] !== undefined) net[e.payer] += e.amount;
+  });
+  return people.map((p) => ({ name: p, net: net[p] }));
+}
+
+function settle() {
+  const owe = balances().filter((b) => b.net < -0.01).map((b) => ({ ...b, net: -b.net }));
+  const get = balances().filter((b) => b.net > 0.01).map((b) => ({ ...b }));
+  const out = [];
+  let i = 0, j = 0;
+  while (i < owe.length && j < get.length) {
+    const amt = Math.min(owe[i].net, get[j].net);
+    out.push({ from: owe[i].name, to: get[j].name, amt });
+    owe[i].net -= amt; get[j].net -= amt;
+    if (owe[i].net < 0.01) i++;
+    if (get[j].net < 0.01) j++;
+  }
+  return out;
+}
+
+/* ── calendar export ───────────────────────────────────── */
+const icsEsc = (s) => String(s).replace(/([,;\\])/g, "\\$1").replace(/\n/g, "\\n");
+function downloadIcs() {
+  const dated = plan.trips.filter((t) => t.date);
+  if (!dated.length) { toast("لا توجد وجهات بتواريخ"); return; }
+  const stamp = new Date().toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+  const nextDay = (s) => {
+    const [y, m, d] = s.split("-").map(Number);
+    const n = new Date(y, m - 1, d + 1);
+    return `${n.getFullYear()}${String(n.getMonth() + 1).padStart(2, "0")}${String(n.getDate()).padStart(2, "0")}`;
+  };
+  const lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//trip-planner//AR", "CALSCALE:GREGORIAN"];
+  dated.forEach((t) => {
+    const items = (t.items || []).map((i) => (i.who ? i.who + ": " : "") + i.text).join("\n");
+    lines.push(
+      "BEGIN:VEVENT",
+      "UID:" + t.id + "@trip-planner",
+      "DTSTAMP:" + stamp,
+      "DTSTART;VALUE=DATE:" + t.date.replace(/-/g, ""),
+      "DTEND;VALUE=DATE:" + nextDay(t.date),
+      "SUMMARY:" + icsEsc(t.place),
+      items ? "DESCRIPTION:" + icsEsc(items) : "",
+      "END:VEVENT"
+    );
+  });
+  lines.push("END:VCALENDAR");
+  const blob = new Blob([lines.filter(Boolean).join("\r\n")], { type: "text/calendar;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = (plan.title || "trip") + ".ics";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+
+/* ── home ──────────────────────────────────────────────── */
 function renderHome() {
   const list = readList();
   app.innerHTML = `
     <h1>مخطط السفر</h1>
     <p class="muted" style="margin-top:8px">كل خطة لها رابط خاص — أنشئا خطة وشاركا رابطها.</p>
-
-    <div style="margin-top:24px">
-      <button class="btn" data-act="newplan">إنشاء خطة جديدة</button>
-    </div>
-
-    <div style="margin-top:32px">
+    <div style="margin-top:22px"><button class="btn" data-act="newplan">إنشاء خطة جديدة</button></div>
+    <div style="margin-top:30px">
       <p style="font-weight:600;margin:0 0 12px">خططي</p>
       ${list.length === 0 ? `<p class="empty">لا توجد خطط على هذا الجهاز.</p>` : ""}
       ${list.map((p) => `
         <div class="plan" data-plan="${esc(p.id)}">
           <button class="grow" data-act="open">
-            <b>${esc(p.title)}</b>
+            <b>${esc(p.title)}${p.ro ? " · عرض فقط" : ""}</b>
             <small>${esc(p.id)}</small>
           </button>
           <button class="tool" data-act="sharelist" aria-label="مشاركة">⇪</button>
           <button class="del" data-act="forget" aria-label="إزالة">✕</button>
         </div>`).join("")}
     </div>
-
     <div class="new">
-      <p>فتح خطة برابط</p>
+      <p class="t">فتح خطة برابط</p>
       <input id="paste" placeholder="الصقا الرابط هنا">
       <button class="btn line" data-act="openlink">فتح</button>
     </div>`;
 }
 
-function renderPlan() {
-  if (!plan) {
-    app.innerHTML = `<p class="empty">جارٍ الفتح…</p>`;
-    return;
-  }
-  const dated = plan.trips.filter((t) => t.date).sort((a, b) => a.date.localeCompare(b.date));
-  const left = dated.length ? daysLeft(dated[0].date) : null;
+/* ── plan ──────────────────────────────────────────────── */
+function tripCard(t, idx, total) {
+  if (editing === t.id) return `
+    <div class="card" data-trip="${t.id}">
+      <input data-edit="place" value="${esc(drafts.__place)}" placeholder="إلى أين؟">
+      <input data-edit="date" type="date" value="${esc(drafts.__date)}" style="margin-top:8px">
+      <div class="row">
+        <button class="btn" data-act="saveedit">حفظ</button>
+        <button class="btn line" data-act="canceledit">إلغاء</button>
+      </div>
+    </div>`;
 
-  const cards = plan.trips.map((t) => {
-    if (editing === t.id) {
-      return `
-      <div class="card" data-trip="${t.id}">
-        <input data-edit="place" value="${esc(drafts.__place)}" placeholder="إلى أين؟">
-        <input data-edit="date" type="date" value="${esc(drafts.__date)}" style="margin-top:8px">
+  const items = (t.items || []).map((i) => {
+    if (editItem === i.id) return `
+      <div class="item" data-item="${i.id}" style="display:block">
+        <input data-ei="text" value="${esc(drafts.__itext)}" placeholder="النشاط">
+        <textarea data-ei="note" rows="2" placeholder="ملاحظات، رقم الحجز، رابط" style="margin-top:8px">${esc(drafts.__inote)}</textarea>
+        <select data-ei="who" style="margin-top:8px">
+          <option value="">بدون مسؤول</option>
+          ${plan.people.map((p) => `<option value="${esc(p)}" ${drafts.__iwho === p ? "selected" : ""}>${esc(p)}</option>`).join("")}
+        </select>
         <div class="row">
-          <button class="btn" data-act="saveedit">حفظ</button>
-          <button class="btn line" data-act="canceledit">إلغاء</button>
+          <button class="btn" data-act="saveitem">حفظ</button>
+          <button class="btn line" data-act="cancelitem">إلغاء</button>
         </div>
       </div>`;
-    }
     return `
-      <div class="card" data-trip="${t.id}">
-        <div class="head">
-          <div class="grow">
-            <h2>${esc(t.place)}</h2>
-            ${t.date ? `<span class="date">${fmtDate(t.date)}</span>` : `<span class="date muted">بدون تاريخ</span>`}
-          </div>
-          <button class="tool" data-act="edit" aria-label="تعديل">✎</button>
-          <button class="del" data-act="deltrip" aria-label="حذف">✕</button>
+      <div class="item" data-item="${i.id}">
+        <button class="tick ${i.done ? "on" : ""}" data-act="tick">✓</button>
+        <div class="body">
+          <p class="${i.done ? "done" : ""}">${i.who ? `<span class="who">${esc(i.who)}</span>` : ""}${esc(i.text)}</p>
+          ${i.note ? `<div class="meta">${linkify(i.note)}</div>` : ""}
         </div>
-        <div style="margin-top:14px">
-          ${(t.items || []).map((i) => `
-            <div class="item">
-              <button class="tick ${i.done ? "on" : ""}" data-act="tick" data-id="${i.id}">✓</button>
-              <p class="${i.done ? "done" : ""}">${esc(i.text)}</p>
-              <button class="del" data-act="delitem" data-id="${i.id}">✕</button>
-            </div>`).join("")}
-        </div>
-        <div class="row">
-          <input data-draft="${t.id}" placeholder="أضيفا نشاطاً" value="${esc(drafts[t.id] || "")}">
-          <button class="icon-btn" data-act="additem">+</button>
-        </div>
+        ${readonly ? "" : `<button class="tool" data-act="edititem" aria-label="تعديل">✎</button>
+        <button class="del" data-act="delitem" aria-label="حذف">✕</button>`}
       </div>`;
   }).join("");
 
+  return `
+    <div class="card" data-trip="${t.id}">
+      <div class="head">
+        <div class="grow">
+          <h2>${esc(t.place)}</h2>
+          ${t.date ? `<span class="date">${fmtDate(t.date)}</span>` : `<span class="date muted">بدون تاريخ</span>`}
+        </div>
+        ${readonly ? "" : `
+          ${idx > 0 ? `<button class="tool" data-act="up" aria-label="أعلى">▲</button>` : ""}
+          ${idx < total - 1 ? `<button class="tool" data-act="down" aria-label="أسفل">▼</button>` : ""}
+          <button class="tool" data-act="edit" aria-label="تعديل">✎</button>
+          <button class="del" data-act="deltrip" aria-label="حذف">✕</button>`}
+      </div>
+      <div style="margin-top:12px">${items}</div>
+      ${readonly ? "" : `
+        <div class="row">
+          <input data-draft="${t.id}" placeholder="أضيفا نشاطاً" value="${esc(drafts[t.id] || "")}">
+          <button class="icon-btn" data-act="additem">+</button>
+        </div>`}
+    </div>`;
+}
+
+function peopleSection() {
+  return `
+    <details data-sec="people">
+      <summary>المسافرون <span class="hint">${plan.people.length || ""}</span></summary>
+      <div style="padding-top:12px">
+        ${plan.people.length === 0 ? `<p class="muted" style="margin-top:0">أضيفوا الأسماء لتوزيع المهام والمصاريف.</p>` : ""}
+        <div>${plan.people.map((p) => `
+          <span class="chip">${esc(p)}${readonly ? "" : `<button class="del" data-act="delperson" data-name="${esc(p)}">✕</button>`}</span>`).join("")}</div>
+        ${readonly ? "" : `
+          <div class="row">
+            <input id="person" placeholder="اسم مسافر" value="${esc(drafts.__person || "")}">
+            <button class="icon-btn" data-act="addperson">+</button>
+          </div>`}
+      </div>
+    </details>`;
+}
+
+function moneySection() {
+  const total = plan.expenses.reduce((s, e) => s + e.amount, 0);
+  const bal = balances();
+  const owes = settle();
+  return `
+    <details data-sec="money">
+      <summary>المصاريف <span class="hint">${plan.expenses.length ? fmtMoney(total) : ""}</span></summary>
+      <div style="padding-top:12px">
+        ${plan.expenses.length === 0 ? `<p class="muted" style="margin-top:0">سجّلوا من دفع ماذا، وسنحسب من له ومن عليه.</p>` : ""}
+        ${plan.expenses.map((e) => `
+          <div class="money" data-exp="${e.id}">
+            <span>${esc(e.label)} <span class="muted">· ${esc(e.payer)}</span></span>
+            <span>${fmtMoney(e.amount)} ${readonly ? "" : `<button class="del" data-act="delexp">✕</button>`}</span>
+          </div>`).join("")}
+
+        ${bal.length && plan.expenses.length ? `
+          <div style="margin-top:16px">
+            <p style="font-weight:600;margin:0 0 6px">الأرصدة</p>
+            ${bal.map((b) => `
+              <div class="bal">
+                <span>${esc(b.name)}</span>
+                <span class="${b.net >= 0 ? "pos" : "neg"}">${b.net >= 0 ? "له " : "عليه "}${fmtMoney(Math.abs(b.net))}</span>
+              </div>`).join("")}
+            ${owes.length ? `<p class="muted" style="margin:10px 0 0;font-size:14px">
+              ${owes.map((o) => `${esc(o.from)} ← ${esc(o.to)}: ${fmtMoney(o.amt)}`).join("<br>")}</p>` : ""}
+          </div>` : ""}
+
+        ${readonly ? "" : (plan.people.length === 0
+          ? `<p class="banner grey">أضيفوا المسافرين أولاً لتسجيل المصاريف.</p>`
+          : `<div class="new" style="margin-top:16px">
+              <p class="t">مصروف جديد</p>
+              <input id="exlabel" placeholder="على ماذا؟" value="${esc(drafts.__exlabel || "")}">
+              <input id="examount" type="number" inputmode="decimal" placeholder="المبلغ" value="${esc(drafts.__examount || "")}">
+              <select id="expayer">${plan.people.map((p) =>
+                `<option value="${esc(p)}" ${drafts.__expayer === p ? "selected" : ""}>${esc(p)} دفع</option>`).join("")}</select>
+              <button class="btn" data-act="addexp">إضافة</button>
+            </div>`)}
+      </div>
+    </details>`;
+}
+
+function renderPlan() {
+  if (!plan) { app.innerHTML = `<p class="empty">جارٍ الفتح…</p>`; return; }
+  const dated = plan.trips.filter((t) => t.date).sort((a, b) => a.date.localeCompare(b.date));
+  const left = dated.length ? daysLeft(dated[0].date) : null;
+
   app.innerHTML = `
     <button class="link" data-act="home">← كل الخطط</button>
-    <div class="top" style="margin-top:8px">
-      <div class="grow" style="min-width:0">
+    <div class="top" style="margin-top:6px">
+      <div class="grow">
         <h1>${esc(plan.title)}</h1>
         ${left !== null && left >= 0
           ? `<p class="sub">${left === 0 ? "الرحلة اليوم" : "باقي " + left + " يوم على أول رحلة"}</p>`
           : `<p class="sub muted">خطتنا معاً</p>`}
       </div>
-      <button class="tool" data-act="rename" aria-label="تغيير الاسم">✎</button>
-      <button class="tool" data-act="share" aria-label="مشاركة">⇪</button>
+      ${readonly ? "" : `<button class="tool" data-act="rename" aria-label="الاسم">✎</button>`}
+      <button class="tool" data-act="ics" aria-label="التقويم">📅</button>
+      ${readonly ? "" : `<button class="tool" data-act="share" aria-label="مشاركة">⇪</button>`}
     </div>
     <p id="status" class="status${bad ? " bad" : ""}">${esc(status)}</p>
+    ${readonly ? `<p class="banner">هذا رابط للعرض فقط — لا يمكن التعديل.</p>` : ""}
+    ${offline && !readonly ? `<p class="banner">غير متصل. التعديلات محفوظة على هذا الجهاز وسترسل لاحقاً.</p>` : ""}
 
-    <div style="margin-top:24px">${cards}</div>
-    ${plan.trips.length === 0 ? `<p class="empty">لا توجد وجهات بعد.<br>أضيفا أول مكان تحلمان به.</p>` : ""}
+    <div style="margin-top:20px">${plan.trips.map((t, i) => tripCard(t, i, plan.trips.length)).join("")}</div>
+    ${plan.trips.length === 0 ? `<p class="empty">لا توجد وجهات بعد.</p>` : ""}
 
-    <div class="new">
-      <p>وجهة جديدة</p>
-      <input id="place" placeholder="إلى أين؟" value="${esc(drafts.__newplace || "")}">
-      <input id="date" type="date" value="${esc(drafts.__newdate || "")}">
-      <button class="btn" data-act="addtrip">إضافة</button>
+    ${readonly ? "" : `
+      <div class="new">
+        <p class="t">وجهة جديدة</p>
+        <input id="place" placeholder="إلى أين؟" value="${esc(drafts.__newplace || "")}">
+        <input id="date" type="date" value="${esc(drafts.__newdate || "")}">
+        <button class="btn" data-act="addtrip">إضافة</button>
+      </div>`}
+
+    <div style="margin-top:28px">
+      ${peopleSection()}
+      ${moneySection()}
+      ${readonly ? "" : `<details data-sec="more">
+        <summary>إعدادات</summary>
+        <div style="padding-top:12px">
+          <button class="btn line" data-act="viewlink" style="margin-bottom:10px">نسخ رابط للعرض فقط</button>
+          <button class="btn line" data-act="currency">تغيير العملة (${esc(cur())})</button>
+        </div>
+      </details>`}
     </div>`;
 
+  app.querySelectorAll("details[data-sec]").forEach((d) => {
+    const k = d.dataset.sec;
+    d.open = openSecs.has(k);
+    d.addEventListener("toggle", () => (d.open ? openSecs.add(k) : openSecs.delete(k)));
+  });
   restoreFocus();
 }
 
-function render() { planId ? renderPlan() : renderHome(); }
+const render = () => (planId ? renderPlan() : renderHome());
 
 let focusKey = null, focusPos = 0;
 function restoreFocus() {
@@ -328,132 +494,208 @@ function restoreFocus() {
 function route() {
   const id = (location.hash || "").replace(/^#\/?/, "").toUpperCase();
   clearInterval(pollTimer);
-  editing = null; drafts = {};
-  if (!/^[A-Z0-9]{4,12}$/.test(id)) {
-    planId = ""; plan = null; status = "";
-    render();
-    return;
-  }
+  editing = null; editItem = null; drafts = {}; readonly = false;
+  if (!/^[A-Z0-9]{4,16}$/.test(id)) { planId = ""; plan = null; status = ""; render(); return; }
   planId = id; plan = null; status = "جارٍ الفتح…";
-  render();
-  pull();
+  render(); pull();
   pollTimer = setInterval(() => { if (document.visibilityState === "visible") pull(); }, 6000);
 }
 window.addEventListener("hashchange", route);
 document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") pull(); });
+window.addEventListener("online", () => { offline = false; if (plan && !readonly) save(); pull(); });
 
-/* ── actions ───────────────────────────────────────────── */
+/* ── input ─────────────────────────────────────────────── */
 app.addEventListener("input", (e) => {
-  const el = e.target;
-  if (el.dataset.draft) { drafts[el.dataset.draft] = el.value; focusKey = el.dataset.draft; }
-  else if (el.dataset.edit === "place") { drafts.__place = el.value; focusKey = null; }
-  else if (el.dataset.edit === "date") { drafts.__date = el.value; focusKey = null; }
+  const el = e.target, d = el.dataset;
+  if (d.draft) { drafts[d.draft] = el.value; focusKey = d.draft; }
+  else if (d.edit === "place") drafts.__place = el.value;
+  else if (d.edit === "date") drafts.__date = el.value;
+  else if (d.ei === "text") drafts.__itext = el.value;
+  else if (d.ei === "note") drafts.__inote = el.value;
+  else if (d.ei === "who") drafts.__iwho = el.value;
   else if (el.id === "place") { drafts.__newplace = el.value; focusKey = "place"; }
-  else if (el.id === "date") { drafts.__newdate = el.value; focusKey = "date"; }
+  else if (el.id === "date") drafts.__newdate = el.value;
+  else if (el.id === "person") { drafts.__person = el.value; focusKey = "person"; }
+  else if (el.id === "exlabel") { drafts.__exlabel = el.value; focusKey = "exlabel"; }
+  else if (el.id === "examount") { drafts.__examount = el.value; focusKey = "examount"; }
+  else if (el.id === "expayer") drafts.__expayer = el.value;
   focusPos = el.selectionStart || 0;
 });
 
 app.addEventListener("keydown", (e) => {
   if (e.key !== "Enter") return;
-  if (e.target.dataset.draft) addItem(e.target.dataset.draft);
-  else if (e.target.id === "place") addTrip();
-  else if (e.target.id === "paste") openLink();
+  const t = e.target;
+  if (t.dataset.draft) addItem(t.dataset.draft);
+  else if (t.id === "place") addTrip();
+  else if (t.id === "person") addPerson();
+  else if (t.id === "paste") openLink();
 });
 
+/* ── actions ───────────────────────────────────────────── */
 app.addEventListener("click", (e) => {
-  const btn = e.target.closest("button");
-  if (!btn) return;
+  const btn = e.target.closest("button"); if (!btn) return;
   const act = btn.dataset.act;
-  const tripId = btn.closest("[data-trip]") && btn.closest("[data-trip]").dataset.trip;
-  const rowId = btn.closest("[data-plan]") && btn.closest("[data-plan]").dataset.plan;
+  const tripEl = btn.closest("[data-trip]"), itemEl = btn.closest("[data-item]");
+  const rowEl = btn.closest("[data-plan]"), expEl = btn.closest("[data-exp]");
+  const tripId = tripEl && tripEl.dataset.trip, itemId = itemEl && itemEl.dataset.item;
+  const t = tripId && plan ? plan.trips.find((x) => x.id === tripId) : null;
 
-  if (act === "newplan") {
-    const id = newId();
-    plan = { title: "خطة جديدة", trips: [] };
-    planId = id;
-    save();               // create the record before anyone opens the link
-    location.hash = id;
+  if (act === "newplan") { createPlan(btn); return; }
+  if (act === "open") { location.hash = rowEl.dataset.plan; return; }
+  if (act === "openlink") return openLink();
+  if (act === "home") { location.hash = ""; route(); return; }
+  if (act === "forget") { forget(rowEl.dataset.plan); render(); return; }
+  if (act === "sharelist") return share(urlFor(rowEl.dataset.plan));
+  if (act === "share") return share(urlFor(planId));
+  if (act === "ics") return downloadIcs();
+  if (act === "viewlink") return share(urlFor(plan.viewId));
+
+  if (act === "currency") {
+    const c = prompt("رمز العملة", cur());
+    if (c && c.trim()) { plan.currency = c.trim().slice(0, 4); save(); render(); }
+    return;
   }
-  if (act === "open") { location.hash = rowId; }
-  if (act === "openlink") openLink();
-  if (act === "home") { location.hash = ""; route(); }
-  if (act === "forget") { forget(rowId); render(); }
-  if (act === "sharelist") share(location.origin + location.pathname + "#" + rowId);
-  if (act === "share") share(planUrl());
-
   if (act === "rename") {
-    const name = prompt("اسم الخطة", plan.title);
-    if (name && name.trim()) { plan.title = name.trim(); save(); render(); }
+    const n = prompt("اسم الخطة", plan.title);
+    if (n && n.trim()) { plan.title = n.trim(); save(); render(); }
+    return;
   }
 
-  if (act === "edit") {
-    const t = plan.trips.find((x) => x.id === tripId);
-    editing = tripId; drafts.__place = t.place; drafts.__date = t.date || "";
-    render();
+  if (act === "up" || act === "down") {
+    const i = plan.trips.findIndex((x) => x.id === tripId);
+    const j = act === "up" ? i - 1 : i + 1;
+    if (j < 0 || j >= plan.trips.length) return;
+    [plan.trips[i], plan.trips[j]] = [plan.trips[j], plan.trips[i]];
+    save(); render(); return;
   }
-  if (act === "canceledit") { editing = null; render(); }
+  if (act === "edit") { editing = tripId; drafts.__place = t.place; drafts.__date = t.date || ""; render(); return; }
+  if (act === "canceledit") { editing = null; render(); return; }
   if (act === "saveedit") {
-    const t = plan.trips.find((x) => x.id === tripId);
-    const place = (drafts.__place || "").trim();
-    if (place) { t.place = place; t.date = drafts.__date || ""; save(); }
-    editing = null; render();
+    const p = (drafts.__place || "").trim();
+    if (p) { t.place = p; t.date = drafts.__date || ""; save(); }
+    editing = null; render(); return;
   }
-
-  if (act === "addtrip") addTrip();
-  if (act === "additem") addItem(tripId);
   if (act === "deltrip") {
-    const t = plan.trips.find((x) => x.id === tripId);
     if (confirm("حذف «" + t.place + "» وكل أنشطتها؟")) {
       plan.trips = plan.trips.filter((x) => x.id !== tripId); save(); render();
-    }
+    } return;
   }
+
+  if (act === "addtrip") return addTrip();
+  if (act === "additem") return addItem(tripId);
   if (act === "tick") {
-    const t = plan.trips.find((x) => x.id === tripId);
-    const i = t.items.find((x) => x.id === btn.dataset.id);
-    i.done = !i.done; save(); render();
+    const i = t.items.find((x) => x.id === itemId); i.done = !i.done; save(); render(); return;
   }
   if (act === "delitem") {
-    const t = plan.trips.find((x) => x.id === tripId);
-    t.items = t.items.filter((x) => x.id !== btn.dataset.id); save(); render();
+    t.items = t.items.filter((x) => x.id !== itemId); save(); render(); return;
+  }
+  if (act === "edititem") {
+    const i = t.items.find((x) => x.id === itemId);
+    editItem = itemId; drafts.__itext = i.text; drafts.__inote = i.note || ""; drafts.__iwho = i.who || "";
+    render(); return;
+  }
+  if (act === "cancelitem") { editItem = null; render(); return; }
+  if (act === "saveitem") {
+    const i = t.items.find((x) => x.id === itemId);
+    const txt = (drafts.__itext || "").trim();
+    if (txt) { i.text = txt; i.note = (drafts.__inote || "").trim(); i.who = drafts.__iwho || ""; save(); }
+    editItem = null; render(); return;
+  }
+
+  if (act === "addperson") return addPerson();
+  if (act === "delperson") {
+    const n = btn.dataset.name;
+    plan.people = plan.people.filter((p) => p !== n);
+    plan.trips.forEach((tr) => (tr.items || []).forEach((i) => { if (i.who === n) i.who = ""; }));
+    plan.expenses = plan.expenses.filter((x) => x.payer !== n);
+    openSecs.add("people"); save(); render(); return;
+  }
+  if (act === "addexp") return addExpense();
+  if (act === "delexp") {
+    plan.expenses = plan.expenses.filter((x) => x.id !== expEl.dataset.exp);
+    openSecs.add("money"); save(); render(); return;
   }
 });
+
+// Asks the server to INSERT (not upsert). A duplicate id comes back as 409,
+// so we simply roll new ones. Practically never loops more than once.
+async function createPlan(btn) {
+  if (!API) { // offline-only mode
+    planId = newId(); plan = blank(); readonly = false; save(); location.hash = planId; return;
+  }
+  if (btn) { btn.disabled = true; btn.textContent = "جارٍ الإنشاء…"; }
+  for (let tries = 0; tries < 6; tries++) {
+    const id = newId();
+    const fresh = blank();
+    try {
+      const res = await fetch(API.replace(/\/+$/, "") + "/" + id + "?create=1", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(fresh),
+      });
+      if (res.status === 409) continue;        // id already used — try another
+      if (!res.ok) throw new Error();
+      planId = id; plan = fresh; readonly = false;
+      localStorage.setItem("hm_cache_" + id, JSON.stringify(fresh));
+      remember(id, fresh.title, false);
+      location.hash = id;
+      return;
+    } catch (e) {
+      if (btn) { btn.disabled = false; btn.textContent = "إنشاء خطة جديدة"; }
+      toast("تعذّر الإنشاء — تحققوا من الاتصال");
+      return;
+    }
+  }
+  if (btn) { btn.disabled = false; btn.textContent = "إنشاء خطة جديدة"; }
+  toast("تعذّر إيجاد رقم متاح، حاولوا مرة أخرى");
+}
 
 function openLink() {
   const el = document.getElementById("paste");
-  const v = (el.value || "").trim().toUpperCase();
-  const m = v.match(/[A-Z0-9]{4,12}$/);
+  const m = (el.value || "").trim().toUpperCase().match(/[A-Z0-9]{4,16}$/);
   if (!m) { toast("رابط غير صالح"); return; }
   location.hash = m[0];
 }
 
 async function share(url) {
   try {
-    if (navigator.share) { await navigator.share({ title: "مخطط السفر", url }); return; }
-    await navigator.clipboard.writeText(url);
-    toast("تم نسخ الرابط");
-  } catch (e) {
-    prompt("انسخا الرابط", url);
-  }
+    if (navigator.share) { await navigator.share({ title: plan ? plan.title : "مخطط السفر", url }); return; }
+    await navigator.clipboard.writeText(url); toast("تم نسخ الرابط");
+  } catch (e) { prompt("انسخا الرابط", url); }
 }
 
 function addTrip() {
-  const place = (drafts.__newplace || "").trim();
-  if (!place || !plan) return;
+  const place = (drafts.__newplace || "").trim(); if (!place || !plan) return;
   plan.trips = [...plan.trips, { id: uid(), place, date: drafts.__newdate || "", items: [] }];
-  drafts.__newplace = ""; drafts.__newdate = ""; focusKey = null;
-  save(); render();
+  drafts.__newplace = ""; drafts.__newdate = ""; focusKey = null; save(); render();
 }
 
 function addItem(tripId) {
-  const text = (drafts[tripId] || "").trim();
-  if (!text || !tripId) return;
+  const text = (drafts[tripId] || "").trim(); if (!text || !tripId) return;
   const t = plan.trips.find((x) => x.id === tripId);
-  t.items = [...(t.items || []), { id: uid(), text, done: false }];
-  drafts[tripId] = ""; focusKey = null;
-  save(); render();
+  t.items = [...(t.items || []), { id: uid(), text, done: false, who: "", note: "" }];
+  drafts[tripId] = ""; focusKey = null; save(); render();
+}
+
+function addPerson() {
+  const n = (drafts.__person || "").trim(); if (!n) return;
+  if (!plan.people.includes(n)) plan.people = [...plan.people, n];
+  drafts.__person = ""; focusKey = "person"; openSecs.add("people"); save(); render();
+}
+
+function addExpense() {
+  const label = (drafts.__exlabel || "").trim();
+  const amount = parseFloat(drafts.__examount);
+  const payer = drafts.__expayer || plan.people[0];
+  if (!label || isNaN(amount) || !payer) { toast("أكملوا البيانات"); return; }
+  plan.expenses = [...plan.expenses, { id: uid(), label, amount, payer, at: Date.now() }];
+  drafts.__exlabel = ""; drafts.__examount = ""; focusKey = null;
+  openSecs.add("money"); save(); render();
 }
 
 /* ── go ────────────────────────────────────────────────── */
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(() => {}));
+}
 route();
-if (planId && !API) pull();
 </script></body></html>
