@@ -113,7 +113,7 @@
 
 <script type="module">
 /* ─────────────────────────────────────────────────────────────
-   رابط Workerr  /  Cloudflare Worker URL
+   رابط Worker  /  Cloudflare Worker URL
    ───────────────────────────────────────────────────────────── */
 const API = "https://trip-sync.i-ana2010.workers.dev";
 
@@ -132,7 +132,7 @@ let status = "", bad = false;
 let saveTimer = null, pollTimer = null, lastWrite = 0;
 const openSecs = new Set();
 
-const blank = () => ({ title: "خطة جديدة", currency: "$", people: [], trips: [], expenses: [], viewId: newId() });
+const blank = () => ({ title: "خطة جديدة", currency: "$", people: [], trips: [], expenses: [], showPeople: true, showMoney: true, viewId: newId() });
 
 /* ── dates ─────────────────────────────────────────────── */
 const fmtDate = (s) => {
@@ -171,6 +171,8 @@ function adopt(data) {
   plan.people = plan.people || [];
   plan.expenses = plan.expenses || [];
   plan.trips = plan.trips || [];
+  if (plan.showPeople === undefined) plan.showPeople = true;
+  if (plan.showMoney === undefined) plan.showMoney = true;
   if (!readonly && !plan.viewId) { plan.viewId = newId(); save(); }
   remember(planId, plan.title, readonly);
 }
@@ -495,13 +497,14 @@ function renderPlan() {
       </div>`}
 
     <div style="margin-top:28px">
-      ${peopleSection()}
-      ${moneySection()}
+      ${plan.showPeople ? peopleSection() : ""}
+      ${plan.showMoney ? moneySection() : ""}
       ${readonly ? "" : `<details data-sec="more">
         <summary>إعدادات</summary>
         <div style="padding-top:12px">
-          <button class="btn line" data-act="viewlink" style="margin-bottom:10px">نسخ رابط للعرض فقط</button>
-          <button class="btn line" data-act="currency">تغيير العملة (${esc(cur())})</button>
+          <button class="btn line" data-act="togglemoney" style="margin-bottom:10px">${plan.showMoney ? "إخفاء ميزة المصاريف" : "إظهار ميزة المصاريف"}</button>
+          ${plan.showMoney ? `<button class="btn line" data-act="currency" style="margin-bottom:10px">تغيير العملة (${esc(cur())})</button>` : ""}
+          <button class="btn line" data-act="viewlink">نسخ رابط للعرض فقط</button>
         </div>
       </details>`}
     </div>`;
@@ -583,6 +586,7 @@ app.addEventListener("click", (e) => {
   if (act === "ics") return downloadIcs();
   if (act === "viewlink") return share(urlFor(plan.viewId));
 
+  if (act === "togglemoney") { plan.showMoney = !plan.showMoney; openSecs.add("more"); save(); render(); return; }
   if (act === "currency") {
     const c = prompt("رمز العملة", cur());
     if (c && c.trim()) { plan.currency = c.trim().slice(0, 4); save(); render(); }
