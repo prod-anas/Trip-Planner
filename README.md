@@ -1,6 +1,6 @@
 # مخطط السفر — trip planner
 
-A single-file web app for two people to plan trips together. No build step, no npm, no credit card.
+A single-filee web app for two people to plan trips together. No build step, no npm, no credit card.
 
 - `index.html` — the app (goes on GitHub Pages)
 - `worker.js` — the sync backend (goes on Cloudflare)
