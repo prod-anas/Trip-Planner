@@ -10,5 +10,10 @@
   },
   "compatibility_flags": [
     "nodejs_compat"
-  ]
+  ],
+  "d1_databases": {
+    "binding": "DB",
+    "database_name": "trip-planner",
+    "database_id": "838d7c39-1f6d-4ca6-acbe-2e4c0e8ddd63"
+  }
 }
