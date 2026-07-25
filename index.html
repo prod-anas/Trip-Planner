@@ -74,6 +74,9 @@
   .item p.done { color:var(--mute); text-decoration:line-through; }
   .meta { font-size:13px; color:var(--mute); margin-top:2px; word-break:break-word; }
   .meta a { color:var(--rose); }
+  .cost { display:inline-block; background:#fef2f2; color:var(--rose); border-radius:999px; padding:1px 9px; font-size:12px; margin-inline-start:6px; white-space:nowrap; }
+  .total { margin:8px 0 0; font-size:15px; color:#57534e; }
+  .total b { color:var(--ink); }
   .who { display:inline-block; background:var(--fill); border-radius:999px; padding:1px 9px; font-size:12px; color:#57534e; margin-inline-end:6px; }
   .tick { height:26px; width:26px; flex:0 0 26px; margin-top:2px; border-radius:999px; border:1px solid var(--line);
           display:flex; align-items:center; justify-content:center; font-size:14px; color:transparent; }
@@ -244,6 +247,8 @@ function toast(msg) {
 /* ── money ─────────────────────────────────────────────── */
 const cur = () => (plan && plan.currency) || "$";
 const fmtMoney = (n) => cur() + " " + (Math.round(n * 100) / 100).toLocaleString("en-US", { maximumFractionDigits: 2 });
+const tripBudget = (t) => (t.items || []).reduce((s, i) => s + (Number(i.cost) || 0), 0);
+const planBudget = () => (plan ? plan.trips.reduce((s, t) => s + tripBudget(t), 0) : 0);
 
 function balances() {
   const people = plan.people.length ? plan.people : [];
@@ -356,6 +361,7 @@ function tripCard(t, idx, total) {
       <div class="item" data-item="${i.id}" style="display:block">
         <input data-ei="text" value="${esc(drafts.__itext)}" placeholder="النشاط">
         <textarea data-ei="note" rows="2" placeholder="ملاحظات، رقم الحجز، رابط" style="margin-top:8px">${esc(drafts.__inote)}</textarea>
+        <input data-ei="cost" type="number" inputmode="decimal" placeholder="التكلفة المتوقعة (${esc(cur())})" value="${esc(drafts.__icost)}" style="margin-top:8px">
         <select data-ei="who" style="margin-top:8px">
           <option value="">بدون مسؤول</option>
           ${plan.people.map((p) => `<option value="${esc(p)}" ${drafts.__iwho === p ? "selected" : ""}>${esc(p)}</option>`).join("")}
@@ -369,7 +375,7 @@ function tripCard(t, idx, total) {
       <div class="item" data-item="${i.id}">
         <button class="tick ${i.done ? "on" : ""}" data-act="tick">✓</button>
         <div class="body">
-          <p class="${i.done ? "done" : ""}">${i.who ? `<span class="who">${esc(i.who)}</span>` : ""}${esc(i.text)}</p>
+          <p class="${i.done ? "done" : ""}">${i.who ? `<span class="who">${esc(i.who)}</span>` : ""}${esc(i.text)}${i.cost ? `<span class="cost">${fmtMoney(i.cost)}</span>` : ""}</p>
           ${i.note ? `<div class="meta">${linkify(i.note)}</div>` : ""}
         </div>
         ${readonly ? "" : `<button class="tool" data-act="edititem" aria-label="تعديل">✎</button>
@@ -383,6 +389,7 @@ function tripCard(t, idx, total) {
         <div class="grow">
           <h2>${esc(t.place)}</h2>
           ${t.date ? `<span class="date">${fmtDate(t.date)}</span>` : `<span class="date muted">بدون تاريخ</span>`}
+          ${tripBudget(t) > 0 ? `<span class="date muted"> · ${fmtMoney(tripBudget(t))}</span>` : ""}
         </div>
         ${readonly ? "" : `
           ${idx > 0 ? `<button class="tool" data-act="up" aria-label="أعلى">▲</button>` : ""}
@@ -470,6 +477,7 @@ function renderPlan() {
         ${left !== null && left >= 0
           ? `<p class="sub">${left === 0 ? "الرحلة اليوم" : "باقي " + left + " يوم على أول رحلة"}</p>`
           : ``}
+        ${planBudget() > 0 ? `<p class="total">الميزانية المتوقعة: <b>${fmtMoney(planBudget())}</b></p>` : ""}
       </div>
       ${readonly ? "" : `<button class="tool" data-act="rename" aria-label="الاسم">✎</button>`}
       <button class="tool" data-act="ics" aria-label="التقويم">📅</button>
@@ -549,6 +557,7 @@ app.addEventListener("input", (e) => {
   else if (d.ei === "text") drafts.__itext = el.value;
   else if (d.ei === "note") drafts.__inote = el.value;
   else if (d.ei === "who") drafts.__iwho = el.value;
+  else if (d.ei === "cost") drafts.__icost = el.value;
   else if (el.id === "place") { drafts.__newplace = el.value; focusKey = "place"; }
   else if (el.id === "date") drafts.__newdate = el.value;
   else if (el.id === "person") { drafts.__person = el.value; focusKey = "person"; }
@@ -628,14 +637,18 @@ app.addEventListener("click", (e) => {
   }
   if (act === "edititem") {
     const i = t.items.find((x) => x.id === itemId);
-    editItem = itemId; drafts.__itext = i.text; drafts.__inote = i.note || ""; drafts.__iwho = i.who || "";
+    editItem = itemId; drafts.__itext = i.text; drafts.__inote = i.note || ""; drafts.__iwho = i.who || ""; drafts.__icost = i.cost ? String(i.cost) : "";
     render(); return;
   }
   if (act === "cancelitem") { editItem = null; render(); return; }
   if (act === "saveitem") {
     const i = t.items.find((x) => x.id === itemId);
     const txt = (drafts.__itext || "").trim();
-    if (txt) { i.text = txt; i.note = (drafts.__inote || "").trim(); i.who = drafts.__iwho || ""; save(); }
+    if (txt) {
+      i.text = txt; i.note = (drafts.__inote || "").trim(); i.who = drafts.__iwho || "";
+      const c = parseFloat(drafts.__icost); i.cost = isNaN(c) || c < 0 ? 0 : c;
+      save();
+    }
     editItem = null; render(); return;
   }
 
